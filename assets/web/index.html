@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pocket AI Edge — 100% Offline On-Device AI</title>
+    <style>
+        :root {
+            --bg-main: #0c0d12;
+            --bg-card: #151720;
+            --bg-card-hover: #1c1f2b;
+            --accent-cyan: #00e5ff;
+            --accent-purple: #ab47bc;
+            --accent-green: #00e676;
+            --accent-red: #ff5252;
+            --text-main: #f0f4f8;
+            --text-muted: #8a99a8;
+            --border-glow: rgba(0, 229, 255, 0.25);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* TOPBAR */
+        header {
+            background: rgba(21, 23, 32, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 10px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 0 12px var(--border-glow);
+        }
+
+        .brand-info h1 {
+            font-size: 0.95rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .brand-info .sub {
+            font-size: 0.68rem;
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .pill-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .pill-btn:hover, .pill-btn:active {
+            background: rgba(0, 229, 255, 0.15);
+            border-color: var(--accent-cyan);
+        }
+
+        /* HARDWARE STATUS DOCK */
+        .hardware-dock {
+            background: #11131a;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .hw-switches {
+            display: flex;
+            gap: 6px;
+        }
+
+        .hw-btn {
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #1a1d28;
+            color: var(--text-muted);
+        }
+
+        .hw-btn.active-gpu {
+            background: rgba(0, 229, 255, 0.2);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+        }
+
+        .hw-btn.active-cpu {
+            background: rgba(0, 230, 118, 0.2);
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        .hw-btn.btn-stop {
+            background: rgba(255, 82, 82, 0.15);
+            border-color: rgba(255, 82, 82, 0.4);
+            color: var(--accent-red);
+        }
+
+        .telemetry-tag {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            font-family: monospace;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* CHAT CONTAINER */
+        #chatList {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            scroll-behavior: smooth;
+        }
+
+        .chat-row {
+            display: flex;
+            flex-direction: column;
+            max-width: 90%;
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .chat-row.user {
+            align-self: flex-end;
+            align-items: flex-end;
+        }
+
+        .chat-row.assistant {
+            align-self: flex-start;
+            align-items: flex-start;
+        }
+
+        .chat-bubble {
+            padding: 12px 16px;
+            border-radius: 14px;
+            font-size: 0.84rem;
+            line-height: 1.55;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        .chat-row.user .chat-bubble {
+            background: linear-gradient(135deg, #00838f, #006064);
+            color: #ffffff;
+            border-bottom-right-radius: 3px;
+            box-shadow: 0 2px 8px rgba(0, 131, 143, 0.3);
+        }
+
+        .chat-row.assistant .chat-bubble {
+            background: var(--bg-card);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-left: 3.5px solid var(--accent-cyan);
+            color: var(--text-main);
+            border-bottom-left-radius: 3px;
+        }
+
+        .meta-badge {
+            margin-top: 5px;
+            font-size: 0.64rem;
+            color: var(--text-muted);
+            display: flex;
+            gap: 8px;
+            font-family: monospace;
+        }
+
+        /* INPUT BAR */
+        .input-container {
+            background: rgba(21, 23, 32, 0.95);
+            backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 10px 14px;
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        #userInput {
+            flex: 1;
+            background: #0d0f14;
+            border: 1.5px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            color: #ffffff;
+            padding: 10px 14px;
+            font-size: 0.85rem;
+            max-height: 120px;
+            resize: none;
+            outline: none;
+            line-height: 1.4;
+            transition: border-color 0.2s;
+        }
+
+        #userInput:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.2);
+        }
+
+        #sendBtn {
+            background: linear-gradient(135deg, var(--accent-cyan), #00b0ff);
+            color: #000000;
+            border: none;
+            border-radius: 12px;
+            width: 44px;
+            height: 44px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        #sendBtn:active {
+            transform: scale(0.94);
+        }
+
+        #sendBtn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* MODAL DRAWER */
+        .drawer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: none;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .drawer-content {
+            background: #151720;
+            border-top: 2px solid var(--accent-cyan);
+            border-radius: 20px 20px 0 0;
+            width: 100%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            animation: slideUp 0.25s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .drawer-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 10px;
+        }
+
+        .drawer-title {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--accent-cyan);
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.3rem;
+            cursor: pointer;
+        }
+
+        .model-card {
+            background: #1c1f2b;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .model-card:hover, .model-card.active {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 229, 255, 0.08);
+        }
+
+        .model-name {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 3px;
+        }
+
+        .model-desc {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+        }
+
+        .badge-active {
+            font-size: 0.65rem;
+            background: var(--accent-cyan);
+            color: #000;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOPBAR -->
+    <header>
+        <div class="brand-box">
+            <div class="brand-logo">🧠</div>
+            <div class="brand-info">
+                <h1>Pocket AI Edge</h1>
+                <div class="sub">⚡ ARM Mali-G76 GPU • 100% Offline Air-gap</div>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="pill-btn" onclick="openDrawer('modelDrawer')">⚙️ Model Hub</button>
+            <button class="pill-btn" onclick="openDrawer('aboutDrawer')">ℹ️ Hak Cipta</button>
+        </div>
+    </header>
+
+    <!-- HARDWARE ACCELERATION CONTROL DOCK -->
+    <div class="hardware-dock">
+        <div class="hw-switches">
+            <button id="hwGpuBtn" class="hw-btn active-gpu" onclick="setHardware('gpu')">⚡ GPU Mali-G76 (ON)</button>
+            <button id="hwCpuBtn" class="hw-btn" onclick="setHardware('cpu')">💻 CPU 6-Core (OFF)</button>
+            <button id="hwStopBtn" class="hw-btn btn-stop" onclick="stopEngine()">🛑 Matikan (Dinginkan HP)</button>
+        </div>
+        <div class="telemetry-tag" id="engineStatusTag">
+            <span>● ENGINE: READY (8089)</span>
+        </div>
+    </div>
+
+    <!-- CHAT CONTAINER -->
+    <div id="chatList">
+        <div class="chat-row assistant">
+            <div class="chat-bubble">
+Halo Bang Haji! Selamat datang di **Pocket AI Edge** 🚀
+Aplikasi ini berjalan 100% murni On-Device di chip ponsel cerdas tanpa internet sama sekali (Air-gap Sovereign AI).
+
+Silakan ketik pertanyaan, minta buatkan kodingan, atau analisis cerita! Model siap merespons di GPU Mali-G76.
+            </div>
+            <div class="meta-badge">
+                <span>⚡ GPU Accelerated</span> • <span>🔒 100% Offline</span> • <span>Noorma M Hidayat © 2026</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- INPUT DOCK -->
+    <div class="input-container">
+        <textarea id="userInput" rows="1" placeholder="Tulis pesan untuk Pocket AI Edge..." onkeydown="handleKey(event)"></textarea>
+        <button id="sendBtn" onclick="sendMessage()">🚀</button>
+    </div>
+
+    <!-- MODEL HUB DRAWER -->
+    <div id="modelDrawer" class="drawer-overlay" onclick="closeDrawerOnOverlay(event, 'modelDrawer')">
+        <div class="drawer-content">
+            <div class="drawer-header">
+                <div class="drawer-title">🧠 Pilih Model On-Device GGUF</div>
+                <button class="close-btn" onclick="closeDrawer('modelDrawer')">×</button>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); line-height: 1.4;">
+                Model GGUF dijalankan secara lokal di RAM HP Samsung Galaxy Note 10+ (Exynos 9825 Mali-G76).
+            </div>
+            <div id="modelListContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                <!-- Dynamically populated -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ABOUT & COPYRIGHT DRAWER -->
+    <div id="aboutDrawer" class="drawer-overlay" onclick="closeDrawerOnOverlay(event, 'aboutDrawer')">
+        <div class="drawer-content">
+            <div class="drawer-header">
+                <div class="drawer-title">🛡️ Sertifikat Hak Cipta &amp; Developer</div>
+                <button class="close-btn" onclick="closeDrawer('aboutDrawer')">×</button>
+            </div>
+            <div style="font-size: 0.78rem; line-height: 1.6; color: var(--text-main);">
+                <p><b>Aplikasi:</b> Pocket AI Edge (v1.0.0)</p>
+                <p><b>Pencipta &amp; Pemilik Hak Cipta:</b> Noorma M Hidayat (Johntika Labs / Kenawa Research)</p>
+                <p><b>Sertifikat Kriptografi:</b> Master Keystore RSA 2048-bit (Masa Berlaku s/d 2067)</p>
+                <p><b>SHA-256 Fingerprint:</b><br><code style="font-size: 0.65rem; color: var(--accent-cyan);">05:7E:02:0B:5F:D9:39:4F:48:53:51:49:EA:54:3C:68:5B:80:A8:3C:8F:62:72:C7:E5:16:97:8D:7C:D8:99:9C</code></p>
+                <div style="margin-top: 10px; padding: 10px; background: rgba(0,229,255,0.08); border-radius: 8px; font-size: 0.72rem; border-left: 3px solid var(--accent-cyan);">
+                    🏆 <b>11 Paper Riset Kaggle Terdaftar:</b><br>
+                    • Accelerating On-Device LLM on ARM Mali GPU<br>
+                    • Pocket AI Multi-Brain Hub Autonomous Agent<br>
+                    • Indo Sovereign Edge LoRA Fine-Tuning Gemma 2<br>
+                    • Zero-Latency Edge RAG Vector Memory<br>
+                    • Sovereign Offline AI for Gemma 4 Good ($200k)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentHardware = 'gpu';
+        let isGenerating = false;
+
+        async function checkStatus() {
+            try {
+                const res = await fetch('http://127.0.0.1:8088/api/pocket/status');
+                const data = await res.json();
+                const tag = document.getElementById('engineStatusTag');
+                if (data.running) {
+                    currentHardware = data.hardware || 'gpu';
+                    updateHardwareButtons();
+                    tag.innerHTML = `<span style="color: var(--accent-green);">● ACTIVE (${data.active_model || 'Gemma 2'})</span>`;
+                } else {
+                    tag.innerHTML = `<span style="color: var(--accent-red);">○ STOPPED (0% RAM)</span>`;
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        function updateHardwareButtons() {
+            const gpuBtn = document.getElementById('hwGpuBtn');
+            const cpuBtn = document.getElementById('hwCpuBtn');
+            if (currentHardware === 'gpu') {
+                gpuBtn.className = 'hw-btn active-gpu';
+                cpuBtn.className = 'hw-btn';
+            } else {
+                gpuBtn.className = 'hw-btn';
+                cpuBtn.className = 'hw-btn active-cpu';
+            }
+        }
+
+        async function setHardware(mode) {
+            currentHardware = mode;
+            updateHardwareButtons();
+            const tag = document.getElementById('engineStatusTag');
+            tag.innerHTML = `<span style="color: var(--accent-cyan);">⏳ Mengganti Engine ke ${mode.toUpperCase()}...</span>`;
+            try {
+                await fetch('http://127.0.0.1:8088/api/pocket/hardware', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({hardware: mode})
+                });
+                setTimeout(checkStatus, 3000);
+            } catch (err) {
+                alert('Gagal ganti hardware: ' + err.message);
+            }
+        }
+
+        async function stopEngine() {
+            if (!confirm('Matikan engine LLM untuk melepaskan 4GB RAM dan mendinginkan HP?')) return;
+            const tag = document.getElementById('engineStatusTag');
+            tag.innerHTML = `<span style="color: var(--accent-red);">🛑 Mematikan Engine...</span>`;
+            try {
+                await fetch('http://127.0.0.1:8088/api/pocket/stop-engine', {method: 'POST'});
+                setTimeout(checkStatus, 1500);
+            } catch (err) {
+                alert('Gagal stop engine: ' + err.message);
+            }
+        }
+
+        async function loadModels() {
+            try {
+                const res = await fetch('http://127.0.0.1:8088/api/pocket/models');
+                const data = await res.json();
+                const container = document.getElementById('modelListContainer');
+                container.innerHTML = '';
+                
+                (data.models || []).forEach(m => {
+                    const card = document.createElement('div');
+                    card.className = 'model-card' + (m.active ? ' active' : '');
+                    card.innerHTML = `
+                        <div>
+                            <div class="model-name">${m.name}</div>
+                            <div class="model-desc">${m.category || 'LLM'} • ${m.size_gb ? m.size_gb + ' GB' : ''}</div>
+                        </div>
+                        ${m.active ? '<span class="badge-active">AKTIF</span>' : ''}
+                    `;
+                    card.onclick = () => switchModel(m.id);
+                    container.appendChild(card);
+                });
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function switchModel(modelId) {
+            closeDrawer('modelDrawer');
+            const tag = document.getElementById('engineStatusTag');
+            tag.innerHTML = `<span style="color: var(--accent-cyan);">⏳ Memuat model baru ke GPU...</span>`;
+            try {
+                await fetch('http://127.0.0.1:8088/api/pocket/switch-model', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({model_id: modelId})
+                });
+                setTimeout(() => {
+                    checkStatus();
+                    loadModels();
+                }, 3500);
+            } catch (err) {
+                alert('Gagal ganti model: ' + err.message);
+            }
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+            if (!text || isGenerating) return;
+
+            input.value = '';
+            input.style.height = 'auto';
+            isGenerating = true;
+            document.getElementById('sendBtn').disabled = true;
+
+            appendMessage('user', text);
+
+            const chatList = document.getElementById('chatList');
+            const assistantRow = document.createElement('div');
+            assistantRow.className = 'chat-row assistant';
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble';
+            bubble.innerHTML = '<i>⚡ Sedang memproses di GPU Mali-G76...</i>';
+            const meta = document.createElement('div');
+            meta.className = 'meta-badge';
+            meta.innerText = '⏳ Mengkalkulasi tensor di Silicon Edge...';
+            
+            assistantRow.appendChild(bubble);
+            assistantRow.appendChild(meta);
+            chatList.appendChild(assistantRow);
+            chatList.scrollTop = chatList.scrollHeight;
+
+            const startTime = performance.now();
+
+            try {
+                const res = await fetch('http://127.0.0.1:8088/api/pocket/chat', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: text})
+                });
+                const data = await res.json();
+                const elapsedSec = ((performance.now() - startTime) / 1000).toFixed(2);
+                
+                if (data.reply) {
+                    bubble.innerText = data.reply;
+                    const tokens = data.reply.split(/\s+/).length * 1.33;
+                    const tps = (tokens / elapsedSec).toFixed(1);
+                    meta.innerHTML = `<span>📊 ${tps} tok/s</span> • <span>⚡ ${currentHardware.toUpperCase()}</span> • <span>⏱️ ${elapsedSec}s</span> • <span>🔒 100% Offline</span>`;
+                } else {
+                    bubble.innerText = '⚠️ Maaf, engine tidak mengembalikan respon.';
+                    meta.innerText = 'Error';
+                }
+            } catch (err) {
+                bubble.innerText = '❌ Gagal terhubung ke engine lokal (Port 8089/8088): ' + err.message;
+                meta.innerText = 'Offline Error';
+            } finally {
+                isGenerating = false;
+                document.getElementById('sendBtn').disabled = false;
+                chatList.scrollTop = chatList.scrollHeight;
+            }
+        }
+
+        function appendMessage(role, text) {
+            const chatList = document.getElementById('chatList');
+            const row = document.createElement('div');
+            row.className = `chat-row ${role}`;
+            const bubble = document.createElement('div');
+            bubble.className = 'chat-bubble';
+            bubble.innerText = text;
+            row.appendChild(bubble);
+            chatList.appendChild(row);
+            chatList.scrollTop = chatList.scrollHeight;
+        }
+
+        function handleKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function openDrawer(id) {
+            document.getElementById(id).style.display = 'flex';
+            if (id === 'modelDrawer') loadModels();
+        }
+
+        function closeDrawer(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function closeDrawerOnOverlay(e, id) {
+            if (e.target.id === id) closeDrawer(id);
+        }
+
+        checkStatus();
+        setInterval(checkStatus, 5000);
+    </script>
+</body>
+</html>
