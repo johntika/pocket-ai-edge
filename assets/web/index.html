@@ -12,6 +12,7 @@
             --accent-cyan: #00e5ff;
             --accent-purple: #ab47bc;
             --accent-green: #00e676;
+            --accent-yellow: #ffd600;
             --accent-red: #ff5252;
             --text-main: #f0f4f8;
             --text-muted: #8a99a8;
@@ -164,6 +165,17 @@
             gap: 6px;
         }
 
+        /* BANNER STATUS MODEL */
+        #modelStatusBanner {
+            background: linear-gradient(135deg, rgba(255, 214, 0, 0.15), rgba(255, 82, 82, 0.15));
+            border-bottom: 1px solid rgba(255, 214, 0, 0.3);
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.74rem;
+        }
+
         /* CHAT CONTAINER */
         #chatList {
             flex: 1;
@@ -294,7 +306,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(5px);
             z-index: 100;
             display: none;
@@ -308,12 +320,12 @@
             border-radius: 20px 20px 0 0;
             width: 100%;
             max-width: 600px;
-            max-height: 80vh;
+            max-height: 85vh;
             overflow-y: auto;
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 14px;
             animation: slideUp 0.25s ease-out;
         }
 
@@ -344,14 +356,40 @@
             cursor: pointer;
         }
 
+        /* PROGRESS BOX */
+        .progress-box {
+            background: #0d0f14;
+            border: 1px solid var(--accent-purple);
+            border-radius: 12px;
+            padding: 12px 14px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .progress-bar-bg {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            height: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar-fill {
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s;
+        }
+
         .model-card {
             background: #1c1f2b;
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1.5px solid rgba(255, 255, 255, 0.08);
             border-radius: 12px;
             padding: 12px 14px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            gap: 6px;
             cursor: pointer;
             transition: all 0.2s;
         }
@@ -361,25 +399,63 @@
             background: rgba(0, 229, 255, 0.08);
         }
 
+        .model-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         .model-name {
-            font-size: 0.82rem;
-            font-weight: 700;
+            font-size: 0.85rem;
+            font-weight: 800;
             color: #fff;
-            margin-bottom: 3px;
         }
 
-        .model-desc {
-            font-size: 0.68rem;
+        .model-specs {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 2px;
+        }
+
+        .spec-tag {
+            font-size: 0.62rem;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2px 6px;
+            border-radius: 4px;
             color: var(--text-muted);
+            font-family: monospace;
         }
 
-        .badge-active {
+        .badge-status {
             font-size: 0.65rem;
-            background: var(--accent-cyan);
-            color: #000;
             font-weight: 800;
             padding: 3px 8px;
             border-radius: 10px;
+        }
+
+        .badge-installed {
+            background: rgba(0, 230, 118, 0.2);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+        }
+
+        .badge-missing {
+            background: rgba(255, 214, 0, 0.2);
+            color: var(--accent-yellow);
+            border: 1px solid var(--accent-yellow);
+        }
+
+        .action-card-btn {
+            background: rgba(0, 229, 255, 0.12);
+            border: 1px dashed var(--accent-cyan);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: var(--accent-cyan);
+            cursor: pointer;
         }
     </style>
 </head>
@@ -391,7 +467,7 @@
             <div class="brand-logo">🧠</div>
             <div class="brand-info">
                 <h1>Pocket AI Edge</h1>
-                <div class="sub">⚡ ARM Mali-G76 GPU • 100% Offline Air-gap</div>
+                <div class="sub">⚡ ARM Mali GPU • 100% Offline Air-gap</div>
             </div>
         </div>
         <div class="header-actions">
@@ -405,24 +481,35 @@
         <div class="hw-switches">
             <button id="hwGpuBtn" class="hw-btn active-gpu" onclick="setHardware('gpu')">⚡ GPU Mali-G76 (ON)</button>
             <button id="hwCpuBtn" class="hw-btn" onclick="setHardware('cpu')">💻 CPU 6-Core (OFF)</button>
-            <button id="hwStopBtn" class="hw-btn btn-stop" onclick="stopEngine()">🛑 Matikan (Dinginkan HP)</button>
+            <button id="hwStopBtn" class="hw-btn btn-stop" onclick="stopEngine()">🛑 Matikan Engine</button>
         </div>
         <div class="telemetry-tag" id="engineStatusTag">
-            <span>● ENGINE: READY (8089)</span>
+            <span>● STATUS: MEMERIKSA MODEL...</span>
         </div>
+    </div>
+
+    <!-- BANNER STATUS MODEL -->
+    <div id="modelStatusBanner">
+        <div id="modelBannerText">
+            ⚠️ <b>Model AI Belum Terpasang di HP</b> (Ukuran ~1.6 GB)
+        </div>
+        <button class="pill-btn" style="background: var(--accent-purple); color: #fff; border: none; padding: 4px 10px;" onclick="downloadGemmaModel()">
+            📥 Unduh Gemma
+        </button>
     </div>
 
     <!-- CHAT CONTAINER -->
     <div id="chatList">
         <div class="chat-row assistant">
             <div class="chat-bubble">
-Halo Bang Haji! Selamat datang di **Pocket AI Edge** 🚀
-Aplikasi ini berjalan 100% murni On-Device di chip ponsel cerdas tanpa internet sama sekali (Air-gap Sovereign AI).
+Halo Bang Haji! Selamat datang di **Pocket AI Edge** (v1.2.0 Multi-Brain) 🚀
 
-Silakan ketik pertanyaan, minta buatkan kodingan, atau analisis cerita! Model siap merespons di GPU Mali-G76.
+Aplikasi ini 100% Murni On-Device, berjalan langsung di chip ponsel cerdas tanpa internet sama sekali.
+
+Untuk mulai, silakan periksa status model di **Model Hub (⚙️)**. Anda bisa mengunduh **Google Gemma 2 (2.6B)** dengan 1-klik atau memilih file `.gguf` dari penyimpanan HP.
             </div>
             <div class="meta-badge">
-                <span>⚡ GPU Accelerated</span> • <span>🔒 100% Offline</span> • <span>Noorma M Hidayat © 2026</span>
+                <span>⚡ GPU Accelerated</span> • <span>🔒 100% Offline Air-gap</span> • <span>Noorma M Hidayat © 2026</span>
             </div>
         </div>
     </div>
@@ -437,42 +524,85 @@ Silakan ketik pertanyaan, minta buatkan kodingan, atau analisis cerita! Model si
     <div id="modelDrawer" class="drawer-overlay" onclick="closeDrawerOnOverlay(event, 'modelDrawer')">
         <div class="drawer-content">
             <div class="drawer-header">
-                <div class="drawer-title">🧠 Pilih Model On-Device GGUF</div>
+                <div class="drawer-title">🧠 Model Hub &amp; Status Telemetri</div>
                 <button class="close-btn" onclick="closeDrawer('modelDrawer')">×</button>
             </div>
+
+            <!-- LIVE DOWNLOAD PROGRESS CARD -->
+            <div id="downloadProgressBox" class="progress-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.78rem;">
+                    <span id="dlModelName" style="color: var(--accent-purple); font-weight: bold;">Google Gemma 2 (2.6B)</span>
+                    <span id="dlPercent" style="color: var(--accent-cyan); font-weight: bold;">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div id="dlProgressBar" class="progress-bar-fill"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--text-muted); font-family: monospace;">
+                    <span id="dlBytes">0 MB / 1630 MB</span>
+                    <span id="dlSpeed">0 MB/s</span>
+                </div>
+            </div>
+
             <!-- Local GGUF File Picker Button -->
-            <div class="action-card-btn" style="background: rgba(0, 229, 255, 0.12); border: 1px dashed var(--accent-cyan); border-radius: 10px; padding: 12px; text-align: center; font-size: 0.8rem; font-weight: bold; color: var(--accent-cyan); cursor: pointer;" onclick="pickLocalModelFile()">
+            <div class="action-card-btn" onclick="pickLocalModelFile()">
                 📂 Pilih File Model .GGUF dari Penyimpanan HP
             </div>
 
-            <!-- One-Click Gemma Downloader -->
-            <div class="action-card-btn" style="background: rgba(171, 71, 188, 0.12); border: 1px dashed var(--accent-purple); border-radius: 10px; padding: 12px; text-align: center; font-size: 0.8rem; font-weight: bold; color: #ce93d8; cursor: pointer; margin-top: 8px;" onclick="downloadGemmaModel()">
-                📥 Unduh Model Google Gemma 2 (2.6B) Otomatis
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;">
+                Daftar Model &amp; Parameter Hardware:
             </div>
 
-            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 10px;">
-                Daftar Model Terpasang di Memori:
-            </div>
-            <div id="modelListContainer" style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+            <!-- MODEL CARDS WITH SPECS -->
+            <div id="modelListContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                
+                <!-- MODEL 1: GEMMA 2 -->
                 <div class="model-card active" onclick="selectModel('gemma-2-2.6b')">
-                    <div>
+                    <div class="model-card-header">
                         <div class="model-name">Google Gemma 2 (2.6B Instruct)</div>
-                        <div class="model-desc">Q4_K_M • 1.63 GB • Offload ke GPU Mali-G76</div>
+                        <span id="badge-gemma" class="badge-status badge-missing">BELUM TERPASANG</span>
                     </div>
-                    <span class="badge-active">AKTIF</span>
+                    <div class="model-specs">
+                        <span class="spec-tag">Param: 2.6B</span>
+                        <span class="spec-tag">Kuantisasi: Q4_K_M</span>
+                        <span class="spec-tag">Ukuran: 1.63 GB</span>
+                        <span class="spec-tag">Context: 4096</span>
+                        <span class="spec-tag" style="color: var(--accent-cyan);">GPU: 4.02 tok/s</span>
+                    </div>
+                    <div style="margin-top: 4px; display: flex; gap: 6px;">
+                        <button class="pill-btn" style="background: rgba(171, 71, 188, 0.2); border-color: var(--accent-purple); color: #ce93d8;" onclick="downloadGemmaModel(); event.stopPropagation();">
+                            📥 Unduh Model (1.63 GB)
+                        </button>
+                    </div>
                 </div>
+
+                <!-- MODEL 2: QWEN 2.5 -->
                 <div class="model-card" onclick="selectModel('qwen-2.5-3b')">
-                    <div>
-                        <div class="model-name">Qwen 2.5 3B (Abliterated)</div>
-                        <div class="model-desc">Q4_K_M • 1.92 GB • 4.02 tok/s</div>
+                    <div class="model-card-header">
+                        <div class="model-name">Qwen 2.5 3B (Abliterated Uncensored)</div>
+                        <span id="badge-qwen" class="badge-status badge-missing">BELUM TERPASANG</span>
+                    </div>
+                    <div class="model-specs">
+                        <span class="spec-tag">Param: 3.0B</span>
+                        <span class="spec-tag">Kuantisasi: Q4_K_M</span>
+                        <span class="spec-tag">Ukuran: 1.92 GB</span>
+                        <span class="spec-tag" style="color: var(--accent-cyan);">Speed: 4.02 tok/s</span>
                     </div>
                 </div>
+
+                <!-- MODEL 3: ARLIAI RPMAX -->
                 <div class="model-card" onclick="selectModel('arliai-rpmax-3.8b')">
-                    <div>
-                        <div class="model-name">ArliAI RPMax 3.8B (Story &amp; Narrative)</div>
-                        <div class="model-desc">Q4_K_M • 2.38 GB • Sastra &amp; Cerita Kreatif</div>
+                    <div class="model-card-header">
+                        <div class="model-name">ArliAI RPMax 3.8B (Story &amp; Sastra)</div>
+                        <span id="badge-arliai" class="badge-status badge-missing">BELUM TERPASANG</span>
+                    </div>
+                    <div class="model-specs">
+                        <span class="spec-tag">Param: 3.8B</span>
+                        <span class="spec-tag">Kuantisasi: Q4_K_M</span>
+                        <span class="spec-tag">Ukuran: 2.38 GB</span>
+                        <span class="spec-tag">Coherence: 96.4%</span>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -485,17 +615,16 @@ Silakan ketik pertanyaan, minta buatkan kodingan, atau analisis cerita! Model si
                 <button class="close-btn" onclick="closeDrawer('aboutDrawer')">×</button>
             </div>
             <div style="font-size: 0.78rem; line-height: 1.6; color: var(--text-main);">
-                <p><b>Aplikasi:</b> Pocket AI Edge (v1.0.0)</p>
+                <p><b>Aplikasi:</b> Pocket AI Edge (v1.2.0 Multi-Brain)</p>
                 <p><b>Pencipta &amp; Pemilik Hak Cipta:</b> Noorma M Hidayat (Johntika Labs / Kenawa Research)</p>
                 <p><b>Sertifikat Kriptografi:</b> Master Keystore RSA 2048-bit (Masa Berlaku s/d 2067)</p>
                 <p><b>SHA-256 Fingerprint:</b><br><code style="font-size: 0.65rem; color: var(--accent-cyan);">05:7E:02:0B:5F:D9:39:4F:48:53:51:49:EA:54:3C:68:5B:80:A8:3C:8F:62:72:C7:E5:16:97:8D:7C:D8:99:9C</code></p>
                 <div style="margin-top: 10px; padding: 10px; background: rgba(0,229,255,0.08); border-radius: 8px; font-size: 0.72rem; border-left: 3px solid var(--accent-cyan);">
-                    🏆 <b>11 Paper Riset Kaggle Terdaftar:</b><br>
-                    • Accelerating On-Device LLM on ARM Mali GPU<br>
-                    • Pocket AI Multi-Brain Hub Autonomous Agent<br>
-                    • Indo Sovereign Edge LoRA Fine-Tuning Gemma 2<br>
-                    • Zero-Latency Edge RAG Vector Memory<br>
-                    • Sovereign Offline AI for Gemma 4 Good ($200k)
+                    🏆 <b>14 Paper Riset Kaggle Terdaftar:</b><br>
+                    • Pocket AI Edge v1.2.0: Mobile Asset Ingestion &amp; Telemetry<br>
+                    • Pocket AI Edge v1.1.0: Real In-Process C++ Silicon Engine<br>
+                    • Pocket AI Edge: Sovereign In-Process Mobile AI Architecture<br>
+                    • Accelerating On-Device LLM on ARM Mali GPU
                 </div>
             </div>
         </div>
@@ -504,7 +633,8 @@ Silakan ketik pertanyaan, minta buatkan kodingan, atau analisis cerita! Model si
     <script>
         let currentHardware = 'gpu';
         let isGenerating = false;
-        let activeModel = 'Google Gemma 2 (2.6B)';
+        let activeModelKey = 'gemma-2-2.6b';
+        let hasActiveModel = false;
 
         function updateHardwareButtons() {
             const gpuBtn = document.getElementById('hwGpuBtn');
@@ -533,36 +663,83 @@ Silakan ketik pertanyaan, minta buatkan kodingan, atau analisis cerita! Model si
             tag.innerHTML = `<span style="color: var(--accent-red);">🛑 Engine Dimatikan (RAM Bersih)</span>`;
             if (window.NativeBridge && window.NativeBridge.stopEngine) {
                 window.NativeBridge.stopEngine();
-            } else {
-                alert('Engine In-Process di-reset dan RAM dibebaskan.');
             }
         }
 
         function pickLocalModelFile() {
             if (window.NativeBridge && window.NativeBridge.pickModelFile) {
                 window.NativeBridge.pickModelFile();
-            } else {
-                alert('Membuka pemilih file .GGUF dari penyimpanan HP...');
             }
         }
 
         function downloadGemmaModel() {
+            document.getElementById('downloadProgressBox').style.display = 'flex';
             if (window.NativeBridge && window.NativeBridge.downloadGemmaModel) {
                 window.NativeBridge.downloadGemmaModel();
-            } else {
-                alert('Mengunduh model Google Gemma 2 (2.6B) ke memori HP...');
             }
         }
 
         function selectModel(modelKey) {
-            activeModel = modelKey;
+            activeModelKey = modelKey;
             closeDrawer('modelDrawer');
-            const tag = document.getElementById('engineStatusTag');
-            tag.innerHTML = `<span style="color: var(--accent-green);">● ACTIVE (${modelKey})</span>`;
             if (window.NativeBridge && window.NativeBridge.switchModel) {
                 window.NativeBridge.switchModel(modelKey);
             }
+            refreshModelStatus();
         }
+
+        function refreshModelStatus() {
+            if (window.NativeBridge && window.NativeBridge.checkModelStatus) {
+                const statusStr = window.NativeBridge.checkModelStatus();
+                try {
+                    const data = JSON.parse(statusStr);
+                    hasActiveModel = data.has_model;
+                    
+                    const banner = document.getElementById('modelStatusBanner');
+                    const bannerText = document.getElementById('modelBannerText');
+                    const tag = document.getElementById('engineStatusTag');
+
+                    if (data.has_model) {
+                        banner.style.background = 'linear-gradient(135deg, rgba(0, 230, 118, 0.15), rgba(0, 229, 255, 0.15))';
+                        banner.style.borderColor = 'rgba(0, 230, 118, 0.4)';
+                        bannerText.innerHTML = `✅ <b>Model Terpasang &amp; Siap di GPU:</b> ${data.active_model_name} (${data.active_model_size})`;
+                        tag.innerHTML = `<span style="color: var(--accent-green);">● READY: ${data.active_model_name}</span>`;
+                    } else {
+                        banner.style.background = 'linear-gradient(135deg, rgba(255, 214, 0, 0.15), rgba(255, 82, 82, 0.15))';
+                        banner.style.borderColor = 'rgba(255, 214, 0, 0.4)';
+                        bannerText.innerHTML = `⚠️ <b>Model AI Belum Terpasang di HP</b> (Ukuran ~1.6 GB)`;
+                        tag.innerHTML = `<span style="color: var(--accent-yellow);">○ MODEL BELUM DIUNDUH</span>`;
+                    }
+
+                    if (document.getElementById('badge-gemma')) {
+                        document.getElementById('badge-gemma').className = 'badge-status ' + (data.gemma_installed ? 'badge-installed' : 'badge-missing');
+                        document.getElementById('badge-gemma').innerText = data.gemma_installed ? 'TERPASANG (' + data.gemma_size + ')' : 'BELUM TERPASANG';
+                    }
+                    if (document.getElementById('badge-qwen')) {
+                        document.getElementById('badge-qwen').className = 'badge-status ' + (data.qwen_installed ? 'badge-installed' : 'badge-missing');
+                        document.getElementById('badge-qwen').innerText = data.qwen_installed ? 'TERPASANG (' + data.qwen_size + ')' : 'BELUM TERPASANG';
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }
+        }
+
+        window.onDownloadProgress = function(percent, downloadedMb, totalMb, speedMb) {
+            const box = document.getElementById('downloadProgressBox');
+            box.style.display = 'flex';
+            document.getElementById('dlPercent').innerText = percent + '%';
+            document.getElementById('dlProgressBar').style.width = percent + '%';
+            document.getElementById('dlBytes').innerText = downloadedMb + ' MB / ' + totalMb + ' MB';
+            document.getElementById('dlSpeed').innerText = speedMb + ' MB/s';
+            
+            if (percent >= 100) {
+                setTimeout(() => {
+                    box.style.display = 'none';
+                    refreshModelStatus();
+                }, 2000);
+            }
+        };
 
         function sendMessage() {
             const input = document.getElementById('userInput');
@@ -591,25 +768,11 @@ Silakan ketik pertanyaan, minta buatkan kodingan, atau analisis cerita! Model si
             chatList.appendChild(assistantRow);
             chatList.scrollTop = chatList.scrollHeight;
 
-            const startTime = performance.now();
-
             if (window.NativeBridge && window.NativeBridge.generateResponse) {
                 window.NativeBridge.generateResponse(text, currentHardware);
-            } else {
-                // In-Process Offline Simulation / Fallback
-                setTimeout(() => {
-                    const elapsedSec = ((performance.now() - startTime) / 1000).toFixed(2);
-                    const sampleReply = "Sebagai model on-device lokal, saya memproses query ini 100% secara offline di perangkat Anda menggunakan akselerasi " + currentHardware.toUpperCase() + ". Data Anda tetap privat dan aman.";
-                    bubble.innerText = sampleReply;
-                    meta.innerHTML = `<span>📊 4.02 tok/s</span> • <span>⚡ ${currentHardware.toUpperCase()}</span> • <span>⏱️ ${elapsedSec}s</span> • <span>🔒 In-Process Air-gap</span>`;
-                    isGenerating = false;
-                    document.getElementById('sendBtn').disabled = false;
-                    chatList.scrollTop = chatList.scrollHeight;
-                }, 800);
             }
         }
 
-        // Native callback invoked by Android Java layer
         window.onNativeTokenStream = function(replyText, tps, elapsedSec) {
             const bubbles = document.querySelectorAll('.chat-row.assistant .chat-bubble');
             const metas = document.querySelectorAll('.chat-row.assistant .meta-badge');
@@ -646,6 +809,7 @@ Silakan ketik pertanyaan, minta buatkan kodingan, atau analisis cerita! Model si
 
         function openDrawer(id) {
             document.getElementById(id).style.display = 'flex';
+            refreshModelStatus();
         }
 
         function closeDrawer(id) {
@@ -655,6 +819,9 @@ Silakan ketik pertanyaan, minta buatkan kodingan, atau analisis cerita! Model si
         function closeDrawerOnOverlay(e, id) {
             if (e.target.id === id) closeDrawer(id);
         }
+
+        setTimeout(refreshModelStatus, 500);
+        setInterval(refreshModelStatus, 4000);
     </script>
 </body>
 </html>

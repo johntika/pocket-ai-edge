@@ -1,8 +1,6 @@
 package com.johntika.pocketai;
 
 import android.app.Activity;
-import android.app.DownloadManager;
-import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -21,6 +19,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 public class MainActivity extends Activity {
     private static final int FILE_PICKER_REQUEST = 101;
@@ -28,6 +28,7 @@ public class MainActivity extends Activity {
     private String selectedModelPath = "";
     private String currentHardwareMode = "gpu";
     private Process runningEngineProcess = null;
+    private boolean isDownloading = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,7 +76,7 @@ public class MainActivity extends Activity {
             @JavascriptInterface
             public void setHardwareMode(String mode) {
                 currentHardwareMode = mode;
-                showToast("Mode akselerasi dialihkan ke: " + mode.toUpperCase());
+                showToast("Mode akselerasi: " + mode.toUpperCase());
             }
 
             @JavascriptInterface
@@ -91,17 +92,69 @@ public class MainActivity extends Activity {
 
             @JavascriptInterface
             public void downloadGemmaModel() {
-                startGemmaDownload();
+                startBackgroundDownload("https://huggingface.co/bartowski/gemma-2-2.6b-it-GGUF/resolve/main/gemma-2-2.6b-it-Q4_K_M.gguf", "gemma-2-2.6b-it-Q4_K_M.gguf");
             }
 
             @JavascriptInterface
             public void switchModel(String modelKey) {
-                showToast("Model aktif diganti ke: " + modelKey);
+                if (modelKey.contains("gemma")) {
+                    selectedModelPath = "/sdcard/Download/gemma-2-2.6b-it-Q4_K_M.gguf";
+                } else if (modelKey.contains("qwen")) {
+                    selectedModelPath = "/sdcard/Download/qwen2.5-3b-instruct-q4_k_m.gguf";
+                } else if (modelKey.contains("arliai")) {
+                    selectedModelPath = "/sdcard/Download/arliai-rpmax-3.8b-v1.1.Q4_K_M.gguf";
+                }
+                showToast("Model dialihkan ke: " + modelKey);
+            }
+
+            @JavascriptInterface
+            public String checkModelStatus() {
+                return getModelStatusJson();
             }
         }, "NativeBridge");
 
         setContentView(webView);
         webView.loadUrl("file:///android_asset/web/index.html");
+    }
+
+    private String getModelStatusJson() {
+        File gemmaFile = new File("/sdcard/Download/gemma-2-2.6b-it-Q4_K_M.gguf");
+        File qwenFile = new File("/sdcard/Download/qwen2.5-3b-instruct-q4_k_m.gguf");
+        File arliaiFile = new File("/sdcard/Download/arliai-rpmax-3.8b-v1.1.Q4_K_M.gguf");
+
+        // Fallback root check
+        if (!gemmaFile.exists()) gemmaFile = new File("/root/pocket-llm-uncensored/models/gemma-2-2.6b-it-Q4_K_M.gguf");
+        if (!qwenFile.exists()) qwenFile = new File("/root/pocket-llm-uncensored/models/qwen2.5-3b-instruct-q4_k_m.gguf");
+
+        boolean gemmaOk = gemmaFile.exists() && gemmaFile.length() > 50000000;
+        boolean qwenOk = qwenFile.exists() && qwenFile.length() > 50000000;
+        boolean hasAnyModel = gemmaOk || qwenOk || (!selectedModelPath.isEmpty() && new File(selectedModelPath).exists());
+
+        String activeName = "Belum Terpasang";
+        String activeSize = "0 GB";
+
+        if (gemmaOk) {
+            activeName = "Google Gemma 2 (2.6B)";
+            activeSize = String.format("%.2f GB", gemmaFile.length() / 1073741824.0);
+            selectedModelPath = gemmaFile.getAbsolutePath();
+        } else if (qwenOk) {
+            activeName = "Qwen 2.5 3B";
+            activeSize = String.format("%.2f GB", qwenFile.length() / 1073741824.0);
+            selectedModelPath = qwenFile.getAbsolutePath();
+        }
+
+        String gemmaSize = gemmaOk ? String.format("%.2f GB", gemmaFile.length() / 1073741824.0) : "0 GB";
+        String qwenSize = qwenOk ? String.format("%.2f GB", qwenFile.length() / 1073741824.0) : "0 GB";
+
+        return "{" +
+            "\"has_model\":" + hasAnyModel + "," +
+            "\"active_model_name\":\"" + activeName + "\"," +
+            "\"active_model_size\":\"" + activeSize + "\"," +
+            "\"gemma_installed\":" + gemmaOk + "," +
+            "\"gemma_size\":\"" + gemmaSize + "\"," +
+            "\"qwen_installed\":" + qwenOk + "," +
+            "\"qwen_size\":\"" + qwenSize + "\"" +
+        "}";
     }
 
     private void autoDetectModel() {
@@ -140,27 +193,94 @@ public class MainActivity extends Activity {
             if (uri != null) {
                 selectedModelPath = uri.getPath();
                 showToast("Model GGUF terpilih: " + selectedModelPath);
+                webView.evaluateJavascript("refreshModelStatus();", null);
             }
         }
     }
 
-    private void startGemmaDownload() {
-        try {
-            String url = "https://huggingface.co/bartowski/gemma-2-2.6b-it-GGUF/resolve/main/gemma-2-2.6b-it-Q4_K_M.gguf";
-            DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
-            request.setTitle("Google Gemma 2 (2.6B) GGUF");
-            request.setDescription("Mengunduh model on-device AI ke folder Download HP...");
-            request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_DOWNLOADS, "gemma-2-2.6b-it-Q4_K_M.gguf");
-
-            DownloadManager dm = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
-            if (dm != null) {
-                dm.enqueue(request);
-                showToast("📥 Unduhan model dimulai di latar belakang...");
-            }
-        } catch (Exception e) {
-            showToast("Error unduh: " + e.getMessage());
+    private void startBackgroundDownload(final String fileUrl, final String fileName) {
+        if (isDownloading) {
+            showToast("Unduhan sedang berlangsung...");
+            return;
         }
+        isDownloading = true;
+        showToast("Memulai unduhan model ke folder Download HP...");
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                if (!downloadDir.exists()) downloadDir.mkdirs();
+                File targetFile = new File(downloadDir, fileName);
+
+                try {
+                    URL url = new URL(fileUrl);
+                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                    conn.setInstanceFollowRedirects(true);
+                    conn.connect();
+
+                    int totalBytes = conn.getContentLength();
+                    if (totalBytes <= 0) totalBytes = 1750000000; // ~1.63 GB fallback estimation
+
+                    InputStream in = conn.getInputStream();
+                    FileOutputStream out = new FileOutputStream(targetFile);
+                    byte[] buffer = new byte[65536];
+                    int bytesRead;
+                    long totalDownloaded = 0;
+                    long lastUpdateTime = System.currentTimeMillis();
+                    long lastBytesCount = 0;
+
+                    while ((bytesRead = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, bytesRead);
+                        totalDownloaded += bytesRead;
+
+                        long now = System.currentTimeMillis();
+                        if (now - lastUpdateTime > 800) {
+                            final int percent = (int) ((totalDownloaded * 100) / totalBytes);
+                            final int downloadedMb = (int) (totalDownloaded / 1048576);
+                            final int totalMb = (int) (totalBytes / 1048576);
+                            double speedMb = ((totalDownloaded - lastBytesCount) / 1048576.0) / ((now - lastUpdateTime) / 1000.0);
+                            final String speedStr = String.format("%.1f", speedMb);
+
+                            lastUpdateTime = now;
+                            lastBytesCount = totalDownloaded;
+
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    webView.evaluateJavascript("window.onDownloadProgress(" + percent + ", " + downloadedMb + ", " + totalMb + ", " + speedStr + ");", null);
+                                }
+                            });
+                        }
+                    }
+
+                    out.flush();
+                    out.close();
+                    in.close();
+                    isDownloading = false;
+
+                    selectedModelPath = targetFile.getAbsolutePath();
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            webView.evaluateJavascript("window.onDownloadProgress(100, 1630, 1630, 0); refreshModelStatus();", null);
+                            showToast("✅ Unduhan model selesai! Siap dijalankan offline di GPU!");
+                        }
+                    });
+
+                } catch (Exception e) {
+                    isDownloading = false;
+                    final String err = e.getMessage();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            showToast("⚠️ Unduhan gagal: " + err);
+                        }
+                    });
+                }
+            }
+        }).start();
     }
 
     private void executeInProcessInference(String prompt, String hwMode) {
@@ -169,11 +289,9 @@ public class MainActivity extends Activity {
         if (selectedModelPath.isEmpty() || !new File(selectedModelPath).exists()) {
             try { Thread.sleep(600); } catch (Exception e) {}
             final String guideReply = "Pocket AI Edge (100% Offline In-Process):\n\n" +
-                "Model siap dijalankan di hardware " + hwMode.toUpperCase() + "!\n" +
-                "Untuk menghasilkan jawaban cerdas (puisi, koding, analisis):\n\n" +
-                "1. Klik [📥 Unduh Model Google Gemma 2 (1.6GB)] di Model Hub (⚙️), ATAU\n" +
-                "2. Klik [📂 Pilih File GGUF dari HP] jika file .gguf sudah ada di penyimpanan.\n\n" +
-                "Setelah file model terpilih, AI akan berpikir murni offline tanpa internet!";
+                "Model siap dijalankan di hardware " + hwMode.toUpperCase() + "!\n\n" +
+                "Status: File model belum terdeteksi di penyimpanan HP.\n" +
+                "👉 Klik [📥 Unduh Model Google Gemma 2 (1.6GB)] di menu Model Hub (⚙️) untuk memulai unduhan otomatis dengan indikator progress persen.";
             
             final double elapsedSec = (System.currentTimeMillis() - startTime) / 1000.0;
             sendResponseToWeb(guideReply, hwMode.equalsIgnoreCase("gpu") ? "4.02" : "2.12", String.format("%.2f", elapsedSec));
