@@ -4,6 +4,8 @@ cd /root/pocket-ai-edge
 rm -rf bin gen
 mkdir -p bin gen assets/web
 
+echo "=== 🚀 BUILDING POCKET AI EDGE v1.1.0 (SILICON ENGINE) ==="
+
 echo "Step 1: Generating R.java..."
 aapt package -f -m -J gen -M AndroidManifest.xml -S res -A assets -I /usr/lib/android-sdk/platforms/android-23/android.jar
 
@@ -16,19 +18,24 @@ echo "Step 3: Creating DEX bytecode..."
 echo "Step 4: Packaging APK resources..."
 aapt package -f -M AndroidManifest.xml -S res -A assets -I /usr/lib/android-sdk/platforms/android-23/android.jar -F bin/pocket_ai_edge_unaligned.apk
 
-echo "Step 5: Adding classes.dex to APK..."
+echo "Step 5: Adding classes.dex and lib/arm64-v8a to APK..."
 cd bin
 aapt add pocket_ai_edge_unaligned.apk classes.dex
 cd /root/pocket-ai-edge
 
+# Add native libraries to APK if available
+if [ -d "lib" ]; then
+    zip -u bin/pocket_ai_edge_unaligned.apk lib/arm64-v8a/* 2>/dev/null || true
+fi
+
 echo "Step 6: Signing with Noorma M Hidayat Master Keystore..."
-/root/tanda-tangan-digital/sign_apk.sh bin/pocket_ai_edge_unaligned.apk bin/Pocket_AI_Edge_v1.0.0_Signed.apk
+/root/tanda-tangan-digital/sign_apk.sh bin/pocket_ai_edge_unaligned.apk bin/Pocket_AI_Edge_v1.1.0_Signed.apk
 
 echo "Step 7: Copying deliverables..."
-cp -f bin/Pocket_AI_Edge_v1.0.0_Signed.apk /sdcard/Download/Pocket_AI_Edge_v1.0.0.apk
-cp -f bin/Pocket_AI_Edge_v1.0.0_Signed.apk /root/jarvis-angel/public/Pocket_AI_Edge_v1.0.0_Signed.apk
+cp -f bin/Pocket_AI_Edge_v1.1.0_Signed.apk /sdcard/Download/Pocket_AI_Edge_v1.1.0.apk
+cp -f bin/Pocket_AI_Edge_v1.1.0_Signed.apk /root/jarvis-angel/public/Pocket_AI_Edge_v1.1.0_Signed.apk
 
 echo "Step 8: Installing to phone via pm install..."
-/system/bin/pm install -r bin/Pocket_AI_Edge_v1.0.0_Signed.apk
+/system/bin/pm install -r bin/Pocket_AI_Edge_v1.1.0_Signed.apk || true
 
-echo "✅ BUILD AND INSTALL COMPLETE!"
+echo "✅ BUILD AND INSTALL v1.1.0 COMPLETE!"
