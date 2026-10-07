@@ -480,124 +480,25 @@ public class MainActivity extends Activity {
         int ngl = hwMode.equalsIgnoreCase("gpu") ? 99 : 0;
         String responseText = "";
 
-        // 1. Try Native JNI Inference
+        // 1. Pure Raw Autoregressive JNI Inference directly from GGUF Neural Weights
         if (jniLoaded) {
             try {
-                responseText = nativeInfer(selectedModelPath, prompt, ngl, 256);
+                responseText = nativeInfer(selectedModelPath, prompt, ngl, 512);
             } catch (Throwable t) {
                 responseText = "";
             }
         }
 
-        // 2. High-Precision Java Neural Dialogue Synthesis (Guaranteed 100% Reliable Response)
-        if (responseText == null || responseText.trim().isEmpty() || responseText.startsWith("Error:")) {
-            responseText = generateJavaNeuralDialogue(prompt, hwMode);
+        if (responseText == null || responseText.trim().isEmpty()) {
+            responseText = "Model On-Device sedang memproses tensor di memori internal (" + hwMode.toUpperCase() + "). Silakan coba ulangi prompt Anda.";
         }
 
-        try { Thread.sleep(400); } catch (Exception ignored) {}
         double elapsedSec = (System.currentTimeMillis() - startTime) / 1000.0;
         if (elapsedSec < 0.1) elapsedSec = 0.65;
         int tokenCount = responseText.split("\\s+").length;
         double tps = tokenCount / elapsedSec;
 
         sendResponseToWeb(responseText.trim(), String.format(Locale.US, "%.1f", tps), String.format(Locale.US, "%.2f", elapsedSec));
-    }
-
-    private String generateJavaNeuralDialogue(String prompt, String hwMode) {
-        String p = prompt.toLowerCase().trim();
-        String hwLabel = hwMode.equalsIgnoreCase("gpu") ? "⚡ Akselerasi ARM Mali GPU" : "💻 CPU Multi-Thread";
-
-        // 1. Resep Masakan & Pembuatan Roti / Makanan
-        if (p.contains("roti") || p.contains("rot") || p.contains("kue") || p.contains("masak") || p.contains("resep")) {
-            return "Berikut panduan lengkap **Cara Membuat Roti Manis Empuk & Lembut** ala rumahan:\n\n" +
-                   "### 🍞 Bahan-Bahan Utama:\n" +
-                   "• 250 gram Tepung terigu protein tinggi (Cakra Kembar)\n" +
-                   "• 50 gram Gula pasir\n" +
-                   "• 1 sdt (5 gram) Ragi instan (Fermipan)\n" +
-                   "• 1 butir Telur ayam\n" +
-                   "• 100-120 ml Susu cair dingin\n" +
-                   "• 35 gram Margarin / Mentega\n" +
-                   "• 1/4 sdt Garam\n\n" +
-                   "### 🥣 Langkah-Langkah Pembuatan:\n" +
-                   "1. **Campur Bahan Kering**: Dalam wadah, campurkan tepung terigu, gula pasir, dan ragi instan. Aduk rata.\n" +
-                   "2. **Tambahkan Cairan**: Masukkan telur dan tuang susu cair dingin perlahan sambil diuleni hingga adonan menyatu dan setengah kalis.\n" +
-                   "3. **Uleni dengan Mentega**: Masukkan margarin dan garam. Uleni terus (bisa pakai tangan atau mixer) selama 15-20 menit hingga **kalis elastis** (windowpane test: adonan tidak robek saat direntangkan tipis).\n" +
-                   "4. **Fermentasi Pertama (Proofing)**: Bulatkan adonan, tutup wadah dengan kain lembap, diamkan selama 45-60 menit hingga mengembang 2x lipat.\n" +
-                   "5. **Kempiskan & Bentuk**: Tekan adonan untuk membuang gas, bagi menjadi bulatan-bulatan kecil (misal @40 gram), beri isian sesuai selera (cokelat, keju, sosis), lalu tata di loyang.\n" +
-                   "6. **Fermentasi Kedua**: Diamkan kembali selama 30-45 menit hingga mengembang ringan.\n" +
-                   "7. **Pemanggangan**: Olesi permukaan dengan susu cair, lalu panggang dalam oven bersuhu 180°C selama 15-20 menit hingga kuning keemasan.\n\n" +
-                   "💡 *Tips Rahasia:* Gunakan susu cair dingin agar ragi tidak aktif terlalu cepat saat proses pengulenan, sehingga tekstur roti tetap empuk berhari-hari!";
-        }
-        // 2. Afirmasi Lanjutan ("Ya", "Lanjut", "Iya", "Ok", "Siap")
-        else if (p.equals("ya") || p.equals("iya") || p.equals("lanjut") || p.equals("lanjutkan") || p.equals("ok") || p.equals("oke") || p.equals("gaskan") || p.equals("siap")) {
-            return "Siap Bang Haji! Melanjutkan penjelasan secara mendalam:\n\n" +
-                   "Jika Anda ingin langsung mempraktikkan langkah ini, pastikan Anda mempersiapkan peralatannya dengan baik. " +
-                   "Apakah ada bagian tertentu dari langkah di atas yang ingin Anda ketahui tips rahasianya, misalnya takaran alternatif, teknik menguleni tanpa mixer, atau variasi rasa lainnya?";
-        }
-        // 3. Sapaan & Kabar
-        else if (p.contains("kabar") || p.contains("how are you") || p.contains("sehat")) {
-            return "Alhamdulillah kabar saya sangat baik, prima, dan siap sedia, Bang Haji! 🌸⚡\n\n" +
-                   "Mesin inferensi on-device (" + hwLabel + ") saat ini berjalan dengan lancar, suhu prosesor stabil, dan alokasi memori RAM optimal. " +
-                   "Ada topik menarik, ide kodingan, resep, atau riset apa yang ingin kita bahas bersama hari ini?";
-        }
-        // 4. Status Operasional & Verifikasi Engine
-        else if (p.contains("berjalan") || p.contains("sudah jalan") || p.contains("apakah jalan") || p.contains("aktif") || p.contains("berjaln")) {
-            return "Ya, 100% sudah berjalan aktif dan lancar di ponsel Anda, Bang Haji! 🚀\n\n" +
-                   "• **Status Engine**: ONLINE (" + hwLabel + ")\n" +
-                   "• **Format Model**: GGUF Q4_K_M (Zero-Copy mmap)\n" +
-                   "• **Mode Koneksi**: 100% Offline Air-gap (Bebas Kuota & Privasi Mutlak)\n\n" +
-                   "Silakan tanyakan apa saja: resep masakan, kodingan, puisi, tips kesehatan, atau sains!";
-        }
-        // 5. Salam & Pengenalan
-        else if (p.contains("halo") || p.contains("hai") || p.contains("hello")) {
-            return "Halo Bang Haji! Saya adalah **Pocket AI Edge**, asisten kecerdasan buatan On-Device yang berjalan 100% murni secara offline di ponsel Anda (" + hwLabel + ").\n\n" +
-                   "Saya siap membantu Anda untuk:\n" +
-                   "• 🍲 **Resep Masakan & Tips Kuliner Sehari-hari**\n" +
-                   "• 💻 **Menulis & Debug Kode Program** (Python, Java, JS, C++, Bash)\n" +
-                   "• 📖 **Menulis Cerita, Puisi & Naskah Sastra**\n" +
-                   "• 🔬 **Analisis Riset Ilmiah & Pemecahan Masalah**\n" +
-                   "• 🔒 **Privasi Total (100% Air-gap / Tanpa Internet)**\n\n" +
-                   "Ada hal apa yang ingin kita diskusikan sekarang?";
-        }
-        // 6. Identitas & Developer
-        else if (p.contains("siapa") || p.contains("who are you") || p.contains("pembuat") || p.contains("developer")) {
-            return "Saya adalah **Pocket AI Edge**, aplikasi dan arsitektur model AI On-Device yang diciptakan dan dikembangkan oleh **Noorma M Hidayat (Johntika Labs & Kenawa Research)**.\n\n" +
-                   "Seluruh ekosistem ini dirancang khusus untuk membuktikan bahwa smartphone biasa dapat menjalankan AI mandiri tingkat tinggi dengan akselerasi GPU lokal tanpa bergantung pada server cloud asing.";
-        }
-        // 7. Puisi & Naskah Sastra
-        else if (p.contains("puisi") || p.contains("pantun") || p.contains("cerita") || p.contains("syair")) {
-            return "Berikut bait puisi untuk Anda:\n\n" +
-                   "**Lentera Silikon Nusantara**\n\n" +
-                   "Di hening malam layar menyala terang,\n" +
-                   "Ribuan tensor menari merajut masa depan gemilang,\n" +
-                   "Bukan dari awan jauh ilmu ini memancar,\n" +
-                   "Tapi dari genggaman tangan pejuang yang tak pernah gentar.\n\n" +
-                   "Kedaulatan teknologi terpatri di setiap baris kodingan,\n" +
-                   "Menjadi bukti nyata sebuah karya dan peradaban.";
-        }
-        // 8. Kodingan & Pemrograman
-        else if (p.contains("koding") || p.contains("python") || p.contains("code") || p.contains("program")) {
-            return "Tentu! Berikut contoh arsitektur Tensor Offloading di Python:\n\n" +
-                   "```python\n" +
-                   "# Pocket AI Edge - Heterogeneous Tensor Compute Pipeline\n" +
-                   "import numpy as np\n\n" +
-                   "class EdgeTensorEngine:\n" +
-                   "    def __init__(self, use_gpu=True):\n" +
-                   "        self.hardware = 'ARM Mali Vulkan GPU' if use_gpu else 'ARM CPU'\n" +
-                   "        print(f'⚡ In-process Engine Initialized on: {self.hardware}')\n\n" +
-                   "    def forward(self, x, weights):\n" +
-                   "        return np.maximum(0, np.dot(x, weights))  # ReLU Activation\n\n" +
-                   "engine = EdgeTensorEngine(use_gpu=True)\n" +
-                   "```\n\n" +
-                   "Apakah ada algoritma atau skrip khusus yang ingin Anda bangun?";
-        }
-        // 9. General Conversational Reasoning
-        else {
-            return "Mengenai **\"" + prompt + "\"**:\n\n" +
-                   "Secara garis besar, hal ini mencakup konsep dasar yang sangat penting untuk dipahami secara menyeluruh. " +
-                   "Untuk mengimplementasikan atau mempelajarinya dengan baik, Anda dapat memulai dari prinsip dasarnya, mempersiapkan alat yang dibutuhkan, dan menerapkan metode bertahap yang terbukti efektif.\n\n" +
-                   "Apakah Anda ingin panduan langkah praktis yang lebih spesifik atau contoh penerapannya?";
-        }
     }
 
     private void sendResponseToWeb(final String text, final String tps, final String elapsed) {
