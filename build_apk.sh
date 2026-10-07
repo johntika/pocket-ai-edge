@@ -4,7 +4,7 @@ cd /root/pocket-ai-edge
 rm -rf bin gen
 mkdir -p bin gen assets/web
 
-echo "=== 🚀 BUILDING POCKET AI EDGE v1.2.0 (TELEMETRY & MULTI-BRAIN) ==="
+echo "=== 🚀 BUILDING POCKET AI EDGE v1.3.0 (PERSISTENT STORAGE INGESTION) ==="
 
 echo "Step 1: Generating R.java..."
 aapt package -f -m -J gen -M AndroidManifest.xml -S res -A assets -I /usr/lib/android-sdk/platforms/android-23/android.jar
@@ -29,13 +29,13 @@ if [ -d "lib" ]; then
 fi
 
 echo "Step 6: Signing with Noorma M Hidayat Master Keystore..."
-/root/tanda-tangan-digital/sign_apk.sh bin/pocket_ai_edge_unaligned.apk bin/Pocket_AI_Edge_v1.2.0_Signed.apk
+/root/tanda-tangan-digital/sign_apk.sh bin/pocket_ai_edge_unaligned.apk bin/Pocket_AI_Edge_v1.3.0_Signed.apk
 
 echo "Step 7: Copying deliverables..."
-cp -f bin/Pocket_AI_Edge_v1.2.0_Signed.apk /sdcard/Download/Pocket_AI_Edge_v1.2.0.apk
-cp -f bin/Pocket_AI_Edge_v1.2.0_Signed.apk /root/jarvis-angel/public/Pocket_AI_Edge_v1.2.0_Signed.apk
+cp -f bin/Pocket_AI_Edge_v1.3.0_Signed.apk /sdcard/Download/Pocket_AI_Edge_v1.3.0.apk
+cp -f bin/Pocket_AI_Edge_v1.3.0_Signed.apk /root/jarvis-angel/public/Pocket_AI_Edge_v1.3.0_Signed.apk
 
 echo "Step 8: Installing to phone via pm install..."
-/system/bin/pm install -r bin/Pocket_AI_Edge_v1.2.0_Signed.apk || true
+/system/bin/pm install -r bin/Pocket_AI_Edge_v1.3.0_Signed.apk || true
 
-echo "✅ BUILD AND INSTALL v1.2.0 COMPLETE!"
+echo "✅ BUILD AND INSTALL v1.3.0 COMPLETE!"
