@@ -471,6 +471,9 @@ public class MainActivity extends Activity {
             String nativeLibPath = getApplicationInfo().nativeLibraryDir;
             String engineBinary = nativeLibPath + "/libllama_engine.so";
             if (!new File(engineBinary).exists()) {
+                engineBinary = nativeLibPath + "/llama-cli";
+            }
+            if (!new File(engineBinary).exists()) {
                 engineBinary = "/root/pocket-llm-uncensored/bin/llama-android/llama-b11433/llama-cli";
             }
 
@@ -481,10 +484,14 @@ public class MainActivity extends Activity {
                 "-p", prompt,
                 "-n", "256",
                 "-ngl", String.valueOf(ngl),
-                "-t", "6",
+                "-t", "4",
                 "--no-display-prompt"
             );
+            pb.environment().put("GGML_BACKEND_DIR", nativeLibPath);
             pb.environment().put("LD_LIBRARY_PATH", nativeLibPath + ":/system/lib64:/vendor/lib64");
+            if (new File(nativeLibPath).exists()) {
+                pb.directory(new File(nativeLibPath));
+            }
             pb.redirectErrorStream(true);
 
             runningEngineProcess = pb.start();
