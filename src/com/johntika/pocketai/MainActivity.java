@@ -118,6 +118,9 @@ public class MainActivity extends Activity {
                 if (modelKey.contains("3b") || modelKey.contains("qwen-3b")) {
                     targetUrl = "https://huggingface.co/Qwen/Qwen2.5-3B-Instruct-GGUF/resolve/main/qwen2.5-3b-instruct-q4_k_m.gguf";
                     fileName = "qwen2.5-3b-instruct-q4_k_m.gguf";
+                } else if (modelKey.contains("gemma")) {
+                    targetUrl = "https://huggingface.co/lmstudio-community/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf";
+                    fileName = "gemma-2-2.6b-it-Q4_K_M.gguf";
                 } else if (modelKey.contains("llama")) {
                     targetUrl = "https://huggingface.co/bartowski/Llama-3.2-3B-Instruct-GGUF/resolve/main/Llama-3.2-3B-Instruct-Q4_K_M.gguf";
                     fileName = "Llama-3.2-3B-Instruct-Q4_K_M.gguf";
@@ -127,7 +130,7 @@ public class MainActivity extends Activity {
 
             @JavascriptInterface
             public void downloadGemmaModel() {
-                downloadModel("qwen-1.5b");
+                downloadModel("gemma");
             }
 
             @JavascriptInterface
