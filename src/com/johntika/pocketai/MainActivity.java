@@ -31,6 +31,18 @@ public class MainActivity extends Activity {
     private static boolean jniLoaded = false;
     static {
         try {
+            System.loadLibrary("ggml-base");
+        } catch (Throwable ignored) {}
+        try {
+            System.loadLibrary("ggml");
+        } catch (Throwable ignored) {}
+        try {
+            System.loadLibrary("ggml-vulkan");
+        } catch (Throwable ignored) {}
+        try {
+            System.loadLibrary("llama");
+        } catch (Throwable ignored) {}
+        try {
             System.loadLibrary("llama_jni");
             jniLoaded = true;
         } catch (Throwable t) {
