@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pocket AI Edge v5.0.1 — Sovereign Multimodal Vision & Word Studio</title>
+    <title>Pocket AI Edge v5.1.0 — Sovereign Multimodal Vision & Word Studio</title>
     <style>
         :root {
             --bg-main: #0a0b10;
@@ -653,6 +653,118 @@
             line-height: 1.5;
         }
 
+        /* PHOTO & DOC EDITOR STYLES */
+        .photo-editor-header {
+            background: #0d0f17;
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 8px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .filter-pill {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            color: var(--text-muted);
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .filter-pill.active {
+            background: rgba(0, 229, 255, 0.15);
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .slider-deck {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 4px 0;
+        }
+
+        .slider-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 100px;
+            flex: 1;
+        }
+
+        .slider-item label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        .slider-item input[type=range] {
+            width: 100%;
+            height: 4px;
+            background: #202434;
+            border-radius: 2px;
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .slider-item input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent-cyan);
+            cursor: pointer;
+        }
+
+        .canvas-stage {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #07080c;
+            padding: 12px;
+            overflow: auto;
+            position: relative;
+        }
+
+        .empty-state-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 24px;
+            background: rgba(18, 20, 30, 0.6);
+            border: 1px dashed var(--border-subtle);
+            border-radius: 16px;
+        }
+
+        .btn-primary {
+            background: var(--accent-cyan);
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+            border-radius: 8px;
+            padding: 8px 14px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
         /* LOADING OVERLAY */
         .ai-loading-indicator {
             display: none;
@@ -695,7 +807,7 @@
         <div class="brand-container">
             <div class="brand-icon">👁️</div>
             <div class="brand-text">
-                <h1>Pocket AI Studio <span style="font-size:0.65rem; background:rgba(0,229,255,0.15); color:var(--accent-cyan); padding:2px 6px; border-radius:4px;">v5.0.1</span></h1>
+                <h1>Pocket AI Studio <span style="font-size:0.65rem; background:rgba(0,229,255,0.15); color:var(--accent-cyan); padding:2px 6px; border-radius:4px;">v5.1.0</span></h1>
                 <div class="status-line">
                     <span class="pulse-dot"></span>
                     <span id="txt-server-status">● LOCALHOST:8088 ONLINE (Vision Ready)</span>
@@ -730,6 +842,9 @@
         </button>
         <button class="tab-btn" id="tab-chat" onclick="switchView('chat')">
             <span>💬 Chat &amp; Vision AI</span>
+        </button>
+        <button class="tab-btn" id="tab-photo" onclick="switchView('photo')">
+            <span>🎨 Photo &amp; Doc Editor</span>
         </button>
     </div>
 
@@ -801,7 +916,7 @@
     <div class="view-pane" id="view-chat">
         <div id="chat-container">
             <div class="chat-msg assistant">
-                Halo Bang Haji! Selamat datang di <b>Pocket AI Edge v5.0.1 (Sovereign Multimodal Vision AI &amp; Word Studio)</b> 🚀<br><br>
+                Halo Bang Haji! Selamat datang di <b>Pocket AI Edge v5.1.0 (Sovereign Multimodal Vision AI &amp; Word Studio)</b> 🚀<br><br>
                 Aplikasi ini sekarang memiliki <b>Sensor Mata Vision AI</b>:<br>
                 • 📷 <b>Kamera Langsung &amp; Galeri:</b> Ambil foto objek, struk, atau dokumen.<br>
                 • 🔍 <b>OCR Ekstrak Teks:</b> Ekstrak teks dari foto langsung ke Word Studio.<br>
@@ -852,6 +967,61 @@
         </div>
     </div>
 
+    <!-- ================= VIEW 3: PHOTO & DOC EDITOR ================= -->
+    <div class="view-pane" id="view-photo">
+        <!-- PHOTO EDITOR CONTROLS -->
+        <div class="photo-editor-header">
+            <div class="tool-row">
+                <button class="tool-btn primary" onclick="triggerEditorCamera()">📷 Foto Kamera</button>
+                <button class="tool-btn" onclick="triggerEditorGallery()">🖼️ Buka Galeri</button>
+                <button class="tool-btn" onclick="rotateEditorImage()">🔄 Putar 90°</button>
+                <button class="tool-btn" onclick="resetEditorImage()">↺ Reset</button>
+                <button class="tool-btn vision" onclick="sendEditorToOCR()">📤 Kirim ke OCR Word</button>
+                <button class="tool-btn vision" onclick="sendEditorToForensics()">🕵️‍♂️ Kirim Forensik</button>
+                <button class="tool-btn" onclick="saveEditorImageDownload()">💾 Simpan JPG</button>
+            </div>
+            <!-- Doc Enhancement Filters -->
+            <div class="tool-row" style="margin-top:4px;">
+                <span style="font-size:0.7rem; color:var(--text-muted); align-self:center; margin-right:4px;">Filter Dokumen:</span>
+                <button class="filter-pill active" id="flt-normal" onclick="applyFilter('normal')">Asli</button>
+                <button class="filter-pill" id="flt-magic" onclick="applyFilter('magic')">✨ Magic Scan</button>
+                <button class="filter-pill" id="flt-bw" onclick="applyFilter('bw')">📄 B&amp;W Dokumen</button>
+                <button class="filter-pill" id="flt-contrast" onclick="applyFilter('contrast')">⚡ Kontras Tinggi</button>
+                <button class="filter-pill" id="flt-gray" onclick="applyFilter('gray')">🔘 Grayscale</button>
+                <button class="filter-pill" id="flt-redact" onclick="toggleRedactMode()">🔒 Sensor NIK (Coret)</button>
+            </div>
+            <!-- Sliders -->
+            <div class="slider-deck">
+                <div class="slider-item">
+                    <label>Kecerahan: <span id="val-bright">0</span></label>
+                    <input type="range" id="range-bright" min="-100" max="100" value="0" oninput="onSliderChange()">
+                </div>
+                <div class="slider-item">
+                    <label>Kontras: <span id="val-contrast">0</span></label>
+                    <input type="range" id="range-contrast" min="-100" max="100" value="0" oninput="onSliderChange()">
+                </div>
+                <div class="slider-item">
+                    <label>Ketajaman: <span id="val-sharp">0</span></label>
+                    <input type="range" id="range-sharp" min="0" max="100" value="0" oninput="onSliderChange()">
+                </div>
+            </div>
+        </div>
+
+        <!-- CANVAS STAGE -->
+        <div class="canvas-stage" id="canvas-wrapper">
+            <div id="canvas-empty-state" class="empty-state-box">
+                <div style="font-size:2.5rem; margin-bottom:8px;">🎨</div>
+                <div style="font-weight:700; color:var(--text-main); margin-bottom:4px;">Kanvas Editor Foto &amp; Dokumen</div>
+                <div style="font-size:0.75rem; color:var(--text-muted); max-width:280px; margin-bottom:12px;">Ambil foto dokumen/KTP atau pilih dari galeri untuk dipertajam, difilter ala CamScanner, atau disensor nomor NIK sebelum diproses AI!</div>
+                <div style="display:flex; gap:8px;">
+                    <button class="btn-primary" onclick="triggerEditorCamera()">📷 Jepret Kamera</button>
+                    <button class="btn-secondary" onclick="triggerEditorGallery()">🖼️ Pilih Galeri</button>
+                </div>
+            </div>
+            <canvas id="photo-canvas" style="display:none; max-width:100%; max-height:100%; border-radius:8px; box-shadow:0 8px 32px rgba(0,0,0,0.5); cursor:crosshair;"></canvas>
+        </div>
+    </div>
+
     <!-- LOADING INDICATOR -->
     <div class="ai-loading-indicator" id="ai-loader">
         <div class="spinner"></div>
@@ -862,7 +1032,7 @@
     <div class="modal-overlay" id="modal-help">
         <div class="modal-card">
             <div class="modal-header">
-                <h2>📖 Panduan Pocket AI Studio v5.0.1</h2>
+                <h2>📖 Panduan Pocket AI Studio v5.1.0</h2>
                 <button class="btn-close-modal" onclick="closeHelpModal()">×</button>
             </div>
             
@@ -954,6 +1124,12 @@
 
         window.onNativeImageLoaded = function(base64Data) {
             currentAttachedBase64 = base64Data;
+            if (window.photoEditorTarget) {
+                window.photoEditorTarget = false;
+                switchView('photo');
+                loadIntoEditor(currentAttachedBase64);
+                return;
+            }
             if (window.wordOcrMode) {
                 window.wordOcrMode = false;
                 executeWordOCR(currentAttachedBase64);
@@ -973,6 +1149,13 @@
             reader.onload = function(e) {
                 currentAttachedBase64 = e.target.result;
                 
+                if (window.photoEditorTarget) {
+                    window.photoEditorTarget = false;
+                    switchView('photo');
+                    loadIntoEditor(currentAttachedBase64);
+                    return;
+                }
+
                 if (window.wordOcrMode) {
                     window.wordOcrMode = false;
                     executeWordOCR(currentAttachedBase64);
@@ -1087,9 +1270,262 @@
             if (view === 'word') {
                 document.getElementById('tab-word').classList.add('active');
                 document.getElementById('view-word').classList.add('active');
+            } else if (view === 'photo') {
+                document.getElementById('tab-photo').classList.add('active');
+                document.getElementById('view-photo').classList.add('active');
             } else {
                 document.getElementById('tab-chat').classList.add('active');
                 document.getElementById('view-chat').classList.add('active');
+            }
+        }
+
+        // ================= PHOTO & DOC EDITOR ENGINE =================
+        let editorImg = new Image();
+        let editorRotation = 0;
+        let activeFilter = 'normal';
+        let isRedacting = false;
+        let isDrawingRedact = false;
+
+        function triggerEditorCamera() {
+            window.photoEditorTarget = true;
+            triggerCamera();
+        }
+
+        function triggerEditorGallery() {
+            window.photoEditorTarget = true;
+            triggerGallery();
+        }
+
+        function loadIntoEditor(base64) {
+            editorImg = new Image();
+            editorImg.onload = function() {
+                document.getElementById('canvas-empty-state').style.display = 'none';
+                const cvs = document.getElementById('photo-canvas');
+                cvs.style.display = 'block';
+                editorRotation = 0;
+                activeFilter = 'normal';
+                document.getElementById('range-bright').value = 0;
+                document.getElementById('range-contrast').value = 0;
+                document.getElementById('range-sharp').value = 0;
+                document.getElementById('val-bright').innerText = "0";
+                document.getElementById('val-contrast').innerText = "0";
+                document.getElementById('val-sharp').innerText = "0";
+                renderEditorCanvas();
+                initCanvasDrawing();
+            };
+            editorImg.src = base64;
+        }
+
+        function renderEditorCanvas() {
+            if (!editorImg.src) return;
+            const cvs = document.getElementById('photo-canvas');
+            const ctx = cvs.getContext('2d');
+
+            const rad = (editorRotation * Math.PI) / 180;
+            const is90or270 = (editorRotation % 180 !== 0);
+            const w = is90or270 ? editorImg.naturalHeight : editorImg.naturalWidth;
+            const h = is90or270 ? editorImg.naturalWidth : editorImg.naturalHeight;
+
+            cvs.width = w;
+            cvs.height = h;
+
+            ctx.save();
+            ctx.translate(w / 2, h / 2);
+            ctx.rotate(rad);
+            ctx.drawImage(editorImg, -editorImg.naturalWidth / 2, -editorImg.naturalHeight / 2);
+            ctx.restore();
+
+            applyCanvasFilters(cvs, ctx);
+        }
+
+        function applyCanvasFilters(cvs, ctx) {
+            const bright = parseInt(document.getElementById('range-bright').value, 10);
+            const contrast = parseInt(document.getElementById('range-contrast').value, 10);
+
+            let imgData = ctx.getImageData(0, 0, cvs.width, cvs.height);
+            let d = imgData.data;
+            let factor = (259 * (contrast + 255)) / (255 * (259 - contrast));
+
+            for (let i = 0; i < d.length; i += 4) {
+                let r = d[i];
+                let g = d[i + 1];
+                let b = d[i + 2];
+
+                if (bright !== 0) {
+                    r += bright;
+                    g += bright;
+                    b += bright;
+                }
+
+                if (contrast !== 0) {
+                    r = factor * (r - 128) + 128;
+                    g = factor * (g - 128) + 128;
+                    b = factor * (g - 128) + 128;
+                }
+
+                if (activeFilter === 'gray') {
+                    let avg = 0.299 * r + 0.587 * g + 0.114 * b;
+                    r = g = b = avg;
+                } else if (activeFilter === 'bw') {
+                    let avg = 0.299 * r + 0.587 * g + 0.114 * b;
+                    let v = avg > 128 ? 255 : 0;
+                    r = g = b = v;
+                } else if (activeFilter === 'magic') {
+                    let avg = 0.299 * r + 0.587 * g + 0.114 * b;
+                    r = r * 1.15 + (r - avg) * 0.2 + 8;
+                    g = g * 1.15 + (g - avg) * 0.2 + 8;
+                    b = b * 1.15 + (b - avg) * 0.2 + 8;
+                } else if (activeFilter === 'contrast') {
+                    let f = (259 * (60 + 255)) / (255 * (259 - 60));
+                    r = f * (r - 128) + 128;
+                    g = f * (g - 128) + 128;
+                    b = f * (g - 128) + 128;
+                }
+
+                d[i] = Math.min(255, Math.max(0, r));
+                d[i + 1] = Math.min(255, Math.max(0, g));
+                d[i + 2] = Math.min(255, Math.max(0, b));
+            }
+
+            ctx.putImageData(imgData, 0, 0);
+        }
+
+        function onSliderChange() {
+            document.getElementById('val-bright').innerText = document.getElementById('range-bright').value;
+            document.getElementById('val-contrast').innerText = document.getElementById('range-contrast').value;
+            document.getElementById('val-sharp').innerText = document.getElementById('range-sharp').value;
+            renderEditorCanvas();
+        }
+
+        function applyFilter(flt) {
+            activeFilter = flt;
+            document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+            const btn = document.getElementById('flt-' + flt);
+            if (btn) btn.classList.add('active');
+            renderEditorCanvas();
+        }
+
+        function rotateEditorImage() {
+            editorRotation = (editorRotation + 90) % 360;
+            renderEditorCanvas();
+        }
+
+        function resetEditorImage() {
+            editorRotation = 0;
+            activeFilter = 'normal';
+            document.getElementById('range-bright').value = 0;
+            document.getElementById('range-contrast').value = 0;
+            document.getElementById('range-sharp').value = 0;
+            document.getElementById('val-bright').innerText = "0";
+            document.getElementById('val-contrast').innerText = "0";
+            document.getElementById('val-sharp').innerText = "0";
+            document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
+            document.getElementById('flt-normal').classList.add('active');
+            renderEditorCanvas();
+        }
+
+        function toggleRedactMode() {
+            isRedacting = !isRedacting;
+            const btn = document.getElementById('flt-redact');
+            if (isRedacting) {
+                btn.classList.add('active');
+                showAppToast("🔒 Mode Sensor NIK Aktif: Usap/coret pada nomor NIK atau tanda tangan untuk menyensor!");
+            } else {
+                btn.classList.remove('active');
+            }
+        }
+
+        function initCanvasDrawing() {
+            const cvs = document.getElementById('photo-canvas');
+            const ctx = cvs.getContext('2d');
+
+            function getCoords(e) {
+                const rect = cvs.getBoundingClientRect();
+                const scaleX = cvs.width / rect.width;
+                const scaleY = cvs.height / rect.height;
+                let clientX = e.clientX;
+                let clientY = e.clientY;
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                }
+                return {
+                    x: (clientX - rect.left) * scaleX,
+                    y: (clientY - rect.top) * scaleY
+                };
+            }
+
+            function startDraw(e) {
+                if (!isRedacting) return;
+                isDrawingRedact = true;
+                const c = getCoords(e);
+                ctx.fillStyle = "#000000";
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, 16, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            function moveDraw(e) {
+                if (!isRedacting || !isDrawingRedact) return;
+                e.preventDefault();
+                const c = getCoords(e);
+                ctx.fillStyle = "#000000";
+                ctx.beginPath();
+                ctx.arc(c.x, c.y, 16, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            function stopDraw() {
+                isDrawingRedact = false;
+            }
+
+            cvs.onmousedown = startDraw;
+            cvs.onmousemove = moveDraw;
+            window.onmouseup = stopDraw;
+
+            cvs.ontouchstart = startDraw;
+            cvs.ontouchmove = moveDraw;
+            cvs.ontouchend = stopDraw;
+        }
+
+        function sendEditorToOCR() {
+            const cvs = document.getElementById('photo-canvas');
+            if (!cvs || cvs.style.display === 'none') {
+                showAppToast("⚠️ Harap buka foto dokumen terlebih dahulu");
+                return;
+            }
+            const b64 = cvs.toDataURL('image/jpeg', 0.9);
+            switchView('word');
+            executeWordOCR(b64);
+        }
+
+        function sendEditorToForensics() {
+            const cvs = document.getElementById('photo-canvas');
+            if (!cvs || cvs.style.display === 'none') {
+                showAppToast("⚠️ Harap buka foto dokumen terlebih dahulu");
+                return;
+            }
+            const b64 = cvs.toDataURL('image/jpeg', 0.9);
+            currentAttachedBase64 = b64;
+            switchView('chat');
+            document.getElementById('img-thumb').src = currentAttachedBase64;
+            document.getElementById('img-size-label').innerText = "Foto Editor Siap";
+            document.getElementById('image-attach-dock').style.display = 'flex';
+            executeVisionAction('forensics');
+        }
+
+        function saveEditorImageDownload() {
+            const cvs = document.getElementById('photo-canvas');
+            if (!cvs || cvs.style.display === 'none') {
+                showAppToast("⚠️ Belum ada foto yang diedit");
+                return;
+            }
+            const b64 = cvs.toDataURL('image/jpeg', 0.92);
+            const fn = "pocket_scan_" + Date.now() + ".jpg";
+            if (window.NativeBridge && window.NativeBridge.saveImageToDownload) {
+                window.NativeBridge.saveImageToDownload(fn, b64);
+            } else {
+                showAppToast("✅ Foto tersimpan!");
             }
         }
 

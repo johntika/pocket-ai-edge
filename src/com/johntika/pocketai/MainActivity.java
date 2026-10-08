@@ -277,6 +277,32 @@ public class MainActivity extends Activity {
             }
 
             @JavascriptInterface
+            public void saveImageToDownload(final String filename, final String base64Data) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            String cleanB64 = base64Data;
+                            if (cleanB64.contains(",")) {
+                                cleanB64 = cleanB64.substring(cleanB64.indexOf(",") + 1);
+                            }
+                            byte[] decoded = Base64.decode(cleanB64, Base64.DEFAULT);
+                            File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                            if (!downloadDir.exists()) downloadDir.mkdirs();
+                            File outFile = new File(downloadDir, filename);
+                            FileOutputStream fos = new FileOutputStream(outFile);
+                            fos.write(decoded);
+                            fos.flush();
+                            fos.close();
+                            showToast("✅ Foto tersimpan di Download: " + filename);
+                        } catch (Throwable t) {
+                            showToast("Gagal menyimpan foto: " + t.getMessage());
+                        }
+                    }
+                }).start();
+            }
+
+            @JavascriptInterface
             public void copyToClipboard(String text) {
                 try {
                     android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
