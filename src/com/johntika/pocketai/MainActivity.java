@@ -303,6 +303,16 @@ public class MainActivity extends Activity {
             }
 
             @JavascriptInterface
+            public String getDeviceCurrentTime() {
+                try {
+                    java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("EEEE, dd MMMM yyyy, HH:mm:ss 'WIB'", new java.util.Locale("id", "ID"));
+                    return sdf.format(new java.util.Date());
+                } catch (Throwable t) {
+                    return "";
+                }
+            }
+
+            @JavascriptInterface
             public void copyToClipboard(String text) {
                 try {
                     android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
