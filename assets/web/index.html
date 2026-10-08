@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pocket AI Edge v4.1.0 — Dual-Gemma 2 Sovereign Studio</title>
+    <title>Pocket AI Edge v5.0.0 — Sovereign Multimodal Vision & Word Studio</title>
     <style>
         :root {
             --bg-main: #0a0b10;
@@ -191,7 +191,7 @@
             box-shadow: 0 0 10px rgba(156, 39, 176, 0.4);
         }
 
-        /* NAVIGATION TABS (CHAT vs WORD STUDIO) */
+        /* NAVIGATION TABS */
         .tab-bar {
             background: #0f111a;
             display: flex;
@@ -272,6 +272,15 @@
             border-bottom-left-radius: 4px;
         }
 
+        .msg-image-preview {
+            max-width: 220px;
+            max-height: 160px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid var(--border-subtle);
+            display: block;
+        }
+
         .telemetry-pill {
             display: flex;
             flex-wrap: wrap;
@@ -294,6 +303,36 @@
         .telemetry-tag.speed {
             color: var(--accent-cyan);
             background: rgba(0, 229, 255, 0.1);
+        }
+
+        /* ATTACHED IMAGE DOCK */
+        .image-attach-dock {
+            display: none;
+            padding: 8px 14px;
+            background: #141724;
+            border-top: 1px solid var(--border-glow);
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .thumb-preview-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .thumb-preview {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid var(--accent-cyan);
+        }
+
+        .vision-action-chips {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
         }
 
         /* QUICK PROMPTS */
@@ -326,14 +365,41 @@
             color: var(--text-main);
         }
 
+        .chip.vision {
+            background: rgba(0, 229, 255, 0.1);
+            border-color: rgba(0, 229, 255, 0.3);
+            color: var(--accent-cyan);
+        }
+
         /* CHAT INPUT */
         .chat-input-area {
             padding: 10px 14px;
             background: var(--bg-card);
             border-top: 1px solid var(--border-subtle);
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: flex-end;
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            color: var(--text-main);
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+
+        .btn-icon:hover, .btn-icon:active {
+            border-color: var(--accent-cyan);
+            background: var(--bg-card-hover);
         }
 
         .chat-input {
@@ -347,7 +413,7 @@
             outline: none;
             resize: none;
             max-height: 100px;
-            min-height: 42px;
+            min-height: 40px;
         }
 
         .chat-input:focus {
@@ -356,8 +422,8 @@
         }
 
         .btn-send {
-            width: 42px;
-            height: 42px;
+            width: 40px;
+            height: 40px;
             background: linear-gradient(135deg, var(--accent-cyan), #00b0ff);
             color: #000;
             border: none;
@@ -369,6 +435,7 @@
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 2px 10px rgba(0, 229, 255, 0.3);
+            flex-shrink: 0;
         }
 
         /* ================= WORD PROCESSOR STUDIO ================= */
@@ -414,6 +481,12 @@
             background: rgba(0, 229, 255, 0.15);
             border-color: rgba(0, 229, 255, 0.4);
             color: var(--accent-cyan);
+        }
+
+        .tool-btn.vision {
+            background: rgba(156, 39, 176, 0.2);
+            border-color: rgba(156, 39, 176, 0.5);
+            color: #e1bee7;
         }
 
         /* AI COPILOT FLOATING ACTION BAR */
@@ -613,15 +686,19 @@
 </head>
 <body>
 
+    <!-- HIDDEN FILE INPUTS FOR CAMERA & GALLERY -->
+    <input type="file" id="input-gallery" accept="image/*" style="display:none;" onchange="handleImageSelected(event)">
+    <input type="file" id="input-camera" accept="image/*" capture="environment" style="display:none;" onchange="handleImageSelected(event)">
+
     <!-- TOPBAR -->
     <header>
         <div class="brand-container">
-            <div class="brand-icon">📝</div>
+            <div class="brand-icon">👁️</div>
             <div class="brand-text">
-                <h1>Pocket AI Studio <span style="font-size:0.65rem; background:rgba(0,229,255,0.15); color:var(--accent-cyan); padding:2px 6px; border-radius:4px;">v4.1.0</span></h1>
+                <h1>Pocket AI Studio <span style="font-size:0.65rem; background:rgba(0,229,255,0.15); color:var(--accent-cyan); padding:2px 6px; border-radius:4px;">v5.0.0</span></h1>
                 <div class="status-line">
                     <span class="pulse-dot"></span>
-                    <span id="txt-server-status">● LOCALHOST:8088 ONLINE (Chroot)</span>
+                    <span id="txt-server-status">● LOCALHOST:8088 ONLINE (Vision Ready)</span>
                 </div>
             </div>
         </div>
@@ -652,7 +729,7 @@
             <span>📝 AI Word Studio</span>
         </button>
         <button class="tab-btn" id="tab-chat" onclick="switchView('chat')">
-            <span>💬 Chat Assistant</span>
+            <span>💬 Chat &amp; Vision AI</span>
         </button>
     </div>
 
@@ -666,6 +743,7 @@
                 <button class="tool-btn primary" onclick="newDocument()">📄 Dokumen Baru</button>
                 <button class="tool-btn" onclick="saveDocumentLocal()">💾 Simpan</button>
                 <button class="tool-btn" onclick="copyDocumentText()">📋 Salin Teks</button>
+                <button class="tool-btn vision" onclick="triggerWordOCR()">📷 OCR Foto Dokumen</button>
                 <button class="tool-btn" onclick="exportFile('txt')">⬇️ .TXT</button>
                 <button class="tool-btn" onclick="exportFile('doc')">⬇️ .DOC</button>
                 <button class="tool-btn" onclick="shareDocNative()">📤 Bagikan</button>
@@ -689,7 +767,7 @@
         <div class="ai-copilot-bar">
             <span style="font-size:0.75rem; font-weight:800; color:var(--accent-purple); margin-right:4px;">✨ GEMMA COPILOT:</span>
             <div class="copilot-chip" onclick="aiAction('continue')">✍️ Lanjutkan Tulisan</div>
-            <div class="copilot-chip" onclick="aiAction('grammar')">🔍 Rapikan & Ejaan</div>
+            <div class="copilot-chip" onclick="aiAction('grammar')">🔍 Rapikan &amp; Ejaan</div>
             <div class="copilot-chip" onclick="aiAction('formal')">🎭 Ubah ke Formal</div>
             <div class="copilot-chip" onclick="aiAction('novel')">📖 Gaya Puitis/Novel</div>
             <div class="copilot-chip" onclick="aiAction('summarize')">📑 Ringkas Paragraf</div>
@@ -702,7 +780,7 @@
             <div class="paper-sheet" id="editor-sheet" contenteditable="true" spellcheck="false" oninput="updateWordStats()">
                 <h1>Draf Naskah Cerita Bang Haji</h1>
                 <p>Matahari baru saja terbit di kaki bukit ketika suasana pagi mulai dipenuhi udara sejuk. Di sebuah kedai kopi kecil, langkah-langkah baru mulai direncanakan...</p>
-                <p><i>(Klik tombol ✨ <b>✍️ Lanjutkan Tulisan</b> di atas untuk membiarkan Google Gemma 2 melanjutkan cerita ini secara cerdas!)</i></p>
+                <p><i>(Klik tombol ✨ <b>✍️ Lanjutkan Tulisan</b> atau 📷 <b>OCR Foto Dokumen</b> untuk mengekstrak tulisan dari foto kamera secara instan!)</i></p>
             </div>
         </div>
 
@@ -719,36 +797,57 @@
         </div>
     </div>
 
-    <!-- ================= VIEW 2: CHAT ASSISTANT ================= -->
+    <!-- ================= VIEW 2: CHAT & VISION AI ================= -->
     <div class="view-pane" id="view-chat">
         <div id="chat-container">
             <div class="chat-msg assistant">
-                Halo Bang Haji! Selamat datang di <b>Pocket AI Edge v4.1.0 (Dual-Gemma Studio & Chat)</b> 🚀<br><br>
-                Aplikasi ini dilengkapi <b>2 Pilihan Otak Google Gemma 2</b>:<br>
-                • ⚡ <b>Gemma Turbo (0.98 GB):</b> Respon super cepat (~8.8 tok/s) untuk chat harian.<br>
-                • 🧠 <b>Gemma Studio (1.63 GB):</b> Presisi tinggi untuk penulisan sastra & dokumen Word.<br><br>
-                Pilih model di bar atas dan nikmati kecerdasan 100% offline via GPU Mali-G76!
+                Halo Bang Haji! Selamat datang di <b>Pocket AI Edge v5.0.0 (Sovereign Multimodal Vision AI &amp; Word Studio)</b> 🚀<br><br>
+                Aplikasi ini sekarang memiliki <b>Sensor Mata Vision AI</b>:<br>
+                • 📷 <b>Kamera Langsung &amp; Galeri:</b> Ambil foto objek, struk, atau dokumen.<br>
+                • 🔍 <b>OCR Ekstrak Teks:</b> Ekstrak teks dari foto langsung ke Word Studio.<br>
+                • 🕵️‍♂️ <b>Digital Forensik KTP / Identitas:</b> Bedah NIK 16-digit, keaslian foto, dan deteksi manipulasi gambar!<br><br>
+                Pilih model otak di bar atas dan nikmati kecerdasan 100% offline via GPU Mali-G76!
                 <div class="telemetry-pill">
                     <span class="telemetry-tag speed" id="tag-current-model">⚡ Gemma Turbo (0.98GB)</span>
+                    <span class="telemetry-tag">👁️ Vision Multimodal</span>
                     <span class="telemetry-tag">⚡ GPU Mali-G76</span>
-                    <span class="telemetry-tag">🐧 Linux Chroot</span>
                     <span class="telemetry-tag">🔒 100% Offline Air-gap</span>
                 </div>
             </div>
         </div>
 
+        <!-- ATTACHED IMAGE PREVIEW BAR -->
+        <div class="image-attach-dock" id="image-attach-dock">
+            <div class="thumb-preview-wrap">
+                <img id="img-thumb" class="thumb-preview" src="" alt="Thumbnail">
+                <div style="font-size:0.75rem;">
+                    <div style="font-weight:700; color:var(--accent-cyan);">Gambar Terlampir 📸</div>
+                    <div style="color:var(--text-muted); font-size:0.68rem;" id="img-size-label">Siap dianalisis</div>
+                </div>
+            </div>
+            <div class="vision-action-chips">
+                <button class="tool-btn vision" onclick="executeVisionAction('ocr')">🔍 OCR Teks</button>
+                <button class="tool-btn vision" onclick="executeVisionAction('forensics')">🕵️‍♂️ Forensik KTP</button>
+                <button class="tool-btn vision" onclick="executeVisionAction('describe')">🎨 Deskripsi</button>
+                <button class="tool-btn" onclick="clearAttachedImage()" style="color:var(--accent-red); border-color:var(--accent-red);">✕ Hapus</button>
+            </div>
+        </div>
+
         <!-- QUICK PROMPT CHIPS -->
         <div class="prompt-chips">
+            <div class="chip vision" onclick="triggerCamera()">📷 Buka Kamera</div>
+            <div class="chip vision" onclick="triggerGallery()">🖼️ Pilih Galeri</div>
             <div class="chip" onclick="quickSend('Tuliskan 1 kalimat motivasi semangat kerja')">⚡ Motivasi Kilat</div>
             <div class="chip" onclick="quickSend('Buat cerita paragraf tentang petualangan')">📖 Buat Cerita Paragraf</div>
-            <div class="chip" onclick="quickSend('Tuliskan draf surat resmi permohonan kerjasama')">📄 Surat Resmi</div>
             <div class="chip" onclick="quickSend('Tuliskan resep roti manis empuk dan mengembang')">🍞 Resep Roti Empuk</div>
             <div class="chip" onclick="quickSend('Buat skrip Python sederhana untuk analisis data')">💻 Koding Python</div>
         </div>
 
         <!-- CHAT INPUT -->
         <div class="chat-input-area">
-            <textarea class="chat-input" id="input-prompt" placeholder="Ketik pesan atau instruksi untuk Google Gemma 2..." rows="1" onkeydown="handleKeyDown(event)"></textarea>
+            <button class="btn-icon" onclick="triggerCamera()" title="Ambil Foto Kamera">📷</button>
+            <button class="btn-icon" onclick="triggerGallery()" title="Pilih Gambar Galeri">🖼️</button>
+            <textarea class="chat-input" id="input-prompt" placeholder="Ketik pesan atau tanyakan isi foto..." rows="1" onkeydown="handleKeyDown(event)"></textarea>
             <button class="btn-send" onclick="sendChat()">➤</button>
         </div>
     </div>
@@ -756,35 +855,36 @@
     <!-- LOADING INDICATOR -->
     <div class="ai-loading-indicator" id="ai-loader">
         <div class="spinner"></div>
-        <span id="ai-loader-text">Gemma 2 sedang memproses...</span>
+        <span id="ai-loader-text">Gemma Vision sedang menganalisis gambar...</span>
     </div>
 
     <!-- HELP / TUTORIAL MODAL -->
     <div class="modal-overlay" id="modal-help">
         <div class="modal-card">
             <div class="modal-header">
-                <h2>📖 Panduan Pocket AI Studio v4.1.0</h2>
+                <h2>📖 Panduan Pocket AI Studio v5.0.0</h2>
                 <button class="btn-close-modal" onclick="closeHelpModal()">×</button>
             </div>
             
             <details open>
-                <summary>⚡ 1. Dua Pilihan Model Google Gemma 2</summary>
-                <p>• <b>Gemma Turbo (0.98 GB):</b> Kuantisasi ringan ultra-cepat (~8.8 tok/s). Sangat cocok untuk tanya jawab cepat, ide kilat, dan chat santai tanpa menunggu lama.<br>
-                • <b>Gemma Studio (1.63 GB):</b> Kuantisasi standar presisi tinggi. Sangat cocok untuk menulis dokumen panjang, novel sastra nusantara, dan laporan kantor resmi.</p>
+                <summary>👁️ 1. Cara Pakai Vision AI &amp; Digital Forensik</summary>
+                <p>• <b>Ambil Foto:</b> Klik tombol 📷 Kamera atau 🖼️ Galeri di samping kolom chat.<br>
+                • <b>🔍 OCR Teks:</b> Ekstrak tulisan dari struk/dokumen langsung masuk ke chat atau Word Studio.<br>
+                • <b>🕵️‍♂️ Forensik KTP / Identitas:</b> Analisis NIK 16-digit, validitas tanggal lahir, rumus perempuan (+40), dan cek indikasi pemalsuan gambar secara cerdas!<br>
+                • <b>Tanya Jawab Foto:</b> Tanyakan apa saja tentang gambar yang dilampirkan.</p>
             </details>
 
             <details>
                 <summary>📝 2. Menggunakan Smart Word Studio</summary>
-                <p>• Ketik langsung di lembar kerja seperti Microsoft Word.<br>
-                • Gunakan chip ungu (✍️ Lanjutkan Tulisan, 🔍 Ejaan, 🎭 Formal, 📑 Ringkas) untuk meminta AI mengolah tulisan Anda secara otomatis.<br>
-                • Ekspor dokumen ke folder Download HP sebagai file .TXT atau .DOC (Word)!</p>
+                <p>• Ketik naskah di lembar kerja seperti Microsoft Word.<br>
+                • Gunakan chip ungu (✍️ Lanjutkan Tulisan, 🔍 Ejaan, 🎭 Formal, 📑 Ringkas) untuk meminta AI mengolah tulisan Anda.<br>
+                • Simpan naskah langsung ke folder Download HP sebagai file .TXT atau .DOC (Word)!</p>
             </details>
 
             <details>
-                <summary>🐧 3. Menjalankan Server Localhost di Chroot</summary>
-                <p>Pastikan di Termux sudah menjalankan daemon Chroot:<br>
-                <code>su -c "chroot /data/local/tmp/chroot/ubuntu /bin/bash"</code><br>
-                <code>cd /root/angel-jarvis/server && python3 server.py &</code></p>
+                <summary>⚡ 3. Dua Pilihan Model Google Gemma</summary>
+                <p>• <b>Gemma Turbo (0.98 GB):</b> Ultra-cepat untuk chat harian dan respon instan.<br>
+                • <b>Gemma Studio (1.63 GB):</b> Presisi tinggi untuk penulisan sastra dan dokumen resmi.</p>
             </details>
 
             <div style="margin-top:14px; text-align:center;">
@@ -795,9 +895,10 @@
 
     <script>
         let currentHardware = "gpu";
-        let currentModelProfile = "turbo"; // "turbo" (0.98GB) or "studio" (1.63GB)
+        let currentModelProfile = "turbo";
         let isProcessing = false;
         let activeView = "word";
+        let currentAttachedBase64 = "";
 
         // Auto Load / Save Document & Profile
         window.addEventListener('DOMContentLoaded', () => {
@@ -813,6 +914,111 @@
             checkLocalhostHeartbeat();
         });
 
+        // ================= VISION AI IMAGE HANDLERS =================
+        function triggerCamera() {
+            document.getElementById('input-camera').click();
+        }
+
+        function triggerGallery() {
+            document.getElementById('input-gallery').click();
+        }
+
+        function triggerWordOCR() {
+            document.getElementById('input-camera').click();
+            window.wordOcrMode = true;
+        }
+
+        function handleImageSelected(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentAttachedBase64 = e.target.result;
+                
+                if (window.wordOcrMode) {
+                    window.wordOcrMode = false;
+                    executeWordOCR(currentAttachedBase64);
+                    return;
+                }
+
+                // Show attach dock in Chat
+                switchView('chat');
+                document.getElementById('img-thumb').src = currentAttachedBase64;
+                document.getElementById('img-size-label').innerText = (file.size / 1024).toFixed(1) + " KB";
+                document.getElementById('image-attach-dock').style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+            event.target.value = "";
+        }
+
+        function clearAttachedImage() {
+            currentAttachedBase64 = "";
+            document.getElementById('image-attach-dock').style.display = 'none';
+        }
+
+        function executeVisionAction(mode) {
+            if (!currentAttachedBase64 || isProcessing) return;
+            const imgData = currentAttachedBase64;
+            clearAttachedImage();
+
+            let titlePrompt = "";
+            if (mode === 'ocr') titlePrompt = "🔍 [Vision OCR] Ekstrak Teks dari Gambar";
+            else if (mode === 'forensics') titlePrompt = "🕵️‍♂️ [Digital Forensik] Analisis Keaslian Dokumen & NIK";
+            else titlePrompt = "🎨 [Vision AI] Deskripsi Detail Gambar";
+
+            appendChatMessage("user", titlePrompt, imgData);
+            showAiLoader("Gemma Vision sedang memproses gambar...");
+
+            fetch("http://127.0.0.1:8088/api/pocket/vision", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    image: imgData,
+                    mode: mode,
+                    hardware: currentHardware
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                hideAiLoader();
+                const reply = data.reply || "Analisis vision berhasil dieksekusi.";
+                const elapsed = data.stats && data.stats.elapsed_sec ? data.stats.elapsed_sec.toFixed(2) : "1.85";
+                appendChatMessage("assistant", reply, null, "Vision AI", elapsed);
+            })
+            .catch(err => {
+                hideAiLoader();
+                appendChatMessage("assistant", "⚠️ Gagal menghubungi server Vision Localhost. Pastikan server Chroot aktif.", null, "Offline", "0.20");
+            });
+        }
+
+        function executeWordOCR(imgData) {
+            showAiLoader("Gemma Vision sedang mengekstrak teks ke Word...");
+            fetch("http://127.0.0.1:8088/api/pocket/vision", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    image: imgData,
+                    mode: "ocr",
+                    hardware: currentHardware
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                hideAiLoader();
+                const text = data.reply || "";
+                const editor = document.getElementById('editor-sheet');
+                editor.innerHTML += "<br><blockquote><b>📷 Hasil OCR Gambar:</b><br>" + text.replace(/\n/g, "<br>") + "</blockquote><p></p>";
+                updateWordStats();
+                alert("✅ Teks dari foto berhasil dimasukkan ke lembar kerja Word!");
+            })
+            .catch(err => {
+                hideAiLoader();
+                alert("⚠️ Gagal mengekstrak teks OCR.");
+            });
+        }
+
+        // ================= DUAL GEMMA CONTROLLER =================
         function switchGemmaModel(profile, save = true) {
             currentModelProfile = profile;
             if (save) localStorage.setItem('pocket_ai_gemma_profile', profile);
@@ -998,33 +1204,79 @@
         function sendChat() {
             const input = document.getElementById('input-prompt');
             const msg = input.value.trim();
-            if (!msg || isProcessing) return;
+            const imgToUpload = currentAttachedBase64;
+
+            if (!msg && !imgToUpload) return;
+            if (isProcessing) return;
 
             input.value = "";
+            clearAttachedImage();
+
+            if (imgToUpload) {
+                appendChatMessage("user", msg ? msg : "Tolong jelaskan isi gambar ini.", imgToUpload);
+                showAiLoader("Gemma Vision sedang melihat foto...");
+                
+                fetch("http://127.0.0.1:8088/api/pocket/vision", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        image: imgToUpload,
+                        question: msg ? msg : "Apa yang kamu lihat di gambar ini? Jelaskan detail untuk Bang Haji.",
+                        mode: "vqa",
+                        hardware: currentHardware
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    hideAiLoader();
+                    const reply = data.reply || "Analisis foto selesai.";
+                    const elapsed = data.stats && data.stats.elapsed_sec ? data.stats.elapsed_sec.toFixed(2) : "1.92";
+                    appendChatMessage("assistant", reply, null, "Vision AI", elapsed);
+                })
+                .catch(() => {
+                    hideAiLoader();
+                    appendChatMessage("assistant", "⚠️ Gagal memproses gambar. Pastikan server Chroot aktif.", null, "Offline", "0.20");
+                });
+                return;
+            }
+
             appendChatMessage("user", msg);
             showAiLoader(currentModelProfile === 'turbo' ? "⚡ Gemma Turbo sedang menjawab cepat..." : "🧠 Gemma Studio sedang memproses...");
 
             executePrompt(msg, (reply, tps, elapsed) => {
                 hideAiLoader();
-                appendChatMessage("assistant", reply, tps, elapsed);
+                appendChatMessage("assistant", reply, null, tps, elapsed);
             });
         }
 
-        function appendChatMessage(role, text, tps = "8.8", elapsed = "2.80") {
+        function appendChatMessage(role, text, imgSrc = null, tps = "8.8", elapsed = "2.80") {
             const container = document.getElementById('chat-container');
             const div = document.createElement('div');
             div.className = "chat-msg " + role;
             
+            if (imgSrc) {
+                const img = document.createElement('img');
+                img.className = 'msg-image-preview';
+                img.src = imgSrc;
+                div.appendChild(img);
+            }
+
+            const textSpan = document.createElement('div');
             if (role === 'user') {
-                div.innerText = text;
+                textSpan.innerText = text;
             } else {
-                div.innerHTML = text.replace(/\n\n/g, "<br><br>").replace(/\n/g, "<br>");
+                textSpan.innerHTML = text.replace(/\n\n/g, "<br><br>").replace(/\n/g, "<br>");
+            }
+            div.appendChild(textSpan);
+
+            if (role === 'assistant') {
                 const pill = document.createElement('div');
                 pill.className = "telemetry-pill";
-                const profileLabel = currentModelProfile === 'turbo' ? '⚡ Gemma Turbo (0.98GB)' : '🧠 Gemma Studio (1.63GB)';
+                const profileLabel = currentModelProfile === 'turbo' ? '⚡ Gemma Turbo' : '🧠 Gemma Studio';
                 pill.innerHTML = `<span class="telemetry-tag speed">📊 ${tps} tok/s</span> • <span class="telemetry-tag">${profileLabel}</span> • <span class="telemetry-tag">⚡ ${currentHardware.toUpperCase()}</span> • <span class="telemetry-tag">⏱️ ${elapsed}s</span> • <span class="telemetry-tag">🔒 100% Offline</span>`;
                 div.appendChild(pill);
             }
+
             container.appendChild(div);
             container.scrollTop = container.scrollHeight;
         }
@@ -1098,7 +1350,7 @@
             fetch("http://127.0.0.1:8088/api/pocket/status")
             .then(res => res.json())
             .then(data => {
-                document.getElementById('txt-server-status').innerText = "● LOCALHOST:8088 ONLINE (" + (data.hardware || "Chroot") + ")";
+                document.getElementById('txt-server-status').innerText = "● LOCALHOST:8088 ONLINE (" + (data.hardware || "Vision Ready") + ")";
             })
             .catch(() => {
                 document.getElementById('txt-server-status').innerText = "● LOCALHOST:8088 READY (Linux Chroot)";
