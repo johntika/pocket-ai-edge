@@ -167,6 +167,51 @@ public class MainActivity extends Activity {
             public String checkModelStatus() {
                 return getModelStatusJson();
             }
+
+            @JavascriptInterface
+            public void shareDocument(String title, String content) {
+                try {
+                    Intent sendIntent = new Intent();
+                    sendIntent.setAction(Intent.ACTION_SEND);
+                    sendIntent.putExtra(Intent.EXTRA_SUBJECT, title);
+                    sendIntent.putExtra(Intent.EXTRA_TEXT, content);
+                    sendIntent.setType("text/plain");
+                    Intent shareIntent = Intent.createChooser(sendIntent, "Bagikan Dokumen");
+                    startActivity(shareIntent);
+                } catch (Throwable t) {
+                    showToast("Gagal membagikan dokumen: " + t.getMessage());
+                }
+            }
+
+            @JavascriptInterface
+            public void saveDocumentToDownload(String filename, String content) {
+                try {
+                    File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    if (!downloadDir.exists()) downloadDir.mkdirs();
+                    File outFile = new File(downloadDir, filename);
+                    FileOutputStream fos = new FileOutputStream(outFile);
+                    fos.write(content.getBytes("UTF-8"));
+                    fos.flush();
+                    fos.close();
+                    showToast("✅ Dokumen tersimpan di Download: " + filename);
+                } catch (Throwable t) {
+                    showToast("Gagal menyimpan file: " + t.getMessage());
+                }
+            }
+
+            @JavascriptInterface
+            public void copyToClipboard(String text) {
+                try {
+                    android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+                    android.content.ClipData clip = android.content.ClipData.newPlainText("Pocket AI Word Studio", text);
+                    if (clipboard != null) {
+                        clipboard.setPrimaryClip(clip);
+                        showToast("📋 Teks berhasil disalin ke Clipboard!");
+                    }
+                } catch (Throwable t) {
+                    showToast("Gagal menyalin: " + t.getMessage());
+                }
+            }
         }, "NativeBridge");
 
         setContentView(webView);
