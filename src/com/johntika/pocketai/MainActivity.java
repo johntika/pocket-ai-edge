@@ -313,6 +313,49 @@ public class MainActivity extends Activity {
             }
 
             @JavascriptInterface
+            public void executeRootPowerAction(final String action) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            String cmd = "/system/bin/reboot";
+                            String msg = "🔄 Memulai Reboot HP...";
+
+                            if ("soft_reboot".equalsIgnoreCase(action)) {
+                                cmd = "setprop ctl.restart zygote";
+                                msg = "⚡ Memulai Soft Reboot UI...";
+                            } else if ("recovery".equalsIgnoreCase(action)) {
+                                cmd = "/system/bin/reboot recovery";
+                                msg = "🛠️ Masuk ke Recovery Mode...";
+                            } else if ("lock_screen".equalsIgnoreCase(action)) {
+                                cmd = "input keyevent 26";
+                                msg = "🔒 Mengunci Layar HP...";
+                            }
+
+                            final String toastMsg = msg;
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    showToast(toastMsg);
+                                }
+                            });
+
+                            Process p = Runtime.getRuntime().exec(new String[]{"su", "-c", cmd});
+                            p.waitFor();
+                        } catch (Throwable t) {
+                            final String err = t.getMessage();
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    showToast("⚠️ Gagal eksekusi root: " + err + " (Pastikan izin Superuser diberikan)");
+                                }
+                            });
+                        }
+                    }
+                }).start();
+            }
+
+            @JavascriptInterface
             public void copyToClipboard(String text) {
                 try {
                     android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);

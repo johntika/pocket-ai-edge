@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pocket AI Edge v5.2.0 — Sovereign Multimodal Vision & Word Studio</title>
+    <title>Pocket AI Edge v5.3.0 — Sovereign Multimodal Vision & Word Studio</title>
     <style>
         :root {
             --bg-main: #0a0b10;
@@ -807,7 +807,7 @@
         <div class="brand-container">
             <div class="brand-icon">👁️</div>
             <div class="brand-text">
-                <h1>Pocket AI Studio <span style="font-size:0.65rem; background:rgba(0,229,255,0.15); color:var(--accent-cyan); padding:2px 6px; border-radius:4px;">v5.2.0</span></h1>
+                <h1>Pocket AI Studio <span style="font-size:0.65rem; background:rgba(0,229,255,0.15); color:var(--accent-cyan); padding:2px 6px; border-radius:4px;">v5.3.0</span></h1>
                 <div class="status-line">
                     <span class="pulse-dot"></span>
                     <span id="txt-server-status">● LOCALHOST:8088 ONLINE (Vision Ready)</span>
@@ -920,7 +920,7 @@
     <div class="view-pane" id="view-chat">
         <div id="chat-container">
             <div class="chat-msg assistant">
-                Halo Bang Haji! Selamat datang di <b>Pocket AI Edge v5.2.0 (Sovereign Multimodal Vision AI &amp; Word Studio)</b> 🚀<br><br>
+                Halo Bang Haji! Selamat datang di <b>Pocket AI Edge v5.3.0 (Sovereign Multimodal Vision AI &amp; Word Studio)</b> 🚀<br><br>
                 Aplikasi ini sekarang memiliki <b>Sensor Mata Vision AI</b>:<br>
                 • 📷 <b>Kamera Langsung &amp; Galeri:</b> Ambil foto objek, struk, atau dokumen.<br>
                 • 🔍 <b>OCR Ekstrak Teks:</b> Ekstrak teks dari foto langsung ke Word Studio.<br>
@@ -956,6 +956,7 @@
         <div class="prompt-chips">
             <div class="chip vision" onclick="triggerCamera()">📷 Buka Kamera</div>
             <div class="chip vision" onclick="triggerGallery()">🖼️ Pilih Galeri</div>
+            <div class="chip" onclick="promptRootAction('reboot')" style="border-color:var(--accent-red); color:var(--accent-red);">🔄 Reset / Restart HP</div>
             <div class="chip" onclick="quickSend('Jam berapa sekarang dan hari apa ini?')">🕒 Jam Berapa Sekarang?</div>
             <div class="chip" onclick="quickSend('Tuliskan 1 kalimat motivasi semangat kerja')">⚡ Motivasi Kilat</div>
             <div class="chip" onclick="quickSend('Buat cerita paragraf tentang petualangan')">📖 Buat Cerita Paragraf</div>
@@ -1038,12 +1039,19 @@
     <div class="modal-overlay" id="modal-help">
         <div class="modal-card">
             <div class="modal-header">
-                <h2>📖 Panduan Pocket AI Studio v5.2.0</h2>
+                <h2>📖 Panduan Pocket AI Studio v5.3.0</h2>
                 <button class="btn-close-modal" onclick="closeHelpModal()">×</button>
             </div>
             
             <details open>
-                <summary>👁️ 1. Cara Pakai Vision AI &amp; Digital Forensik</summary>
+                <summary>⚡ 1. Reset / Reboot HP Superuser</summary>
+                <p>• <b>Reset HP Penuh:</b> Ketik <i>"Restart HP"</i> atau klik chip 🔄 Reset HP untuk me-reboot ponsel secara aman dengan dialog konfirmasi.<br>
+                • <b>Soft Reboot UI:</b> Memulai ulang Zygote/UI Android dalam hitungan detik tanpa mematikan kernel.<br>
+                • <b>Recovery Mode:</b> Masuk ke TWRP/Lineage Recovery untuk flashing/maintenance.</p>
+            </details>
+
+            <details>
+                <summary>👁️ 2. Cara Pakai Vision AI &amp; Digital Forensik</summary>
                 <p>• <b>Ambil Foto:</b> Klik tombol 📷 Kamera atau 🖼️ Galeri di samping kolom chat.<br>
                 • <b>🔍 OCR Teks:</b> Ekstrak tulisan dari struk/dokumen langsung masuk ke chat atau Word Studio.<br>
                 • <b>🕵️‍♂️ Forensik KTP / Identitas:</b> Analisis NIK 16-digit, validitas tanggal lahir, rumus perempuan (+40), dan cek indikasi pemalsuan gambar secara cerdas!<br>
@@ -1051,20 +1059,37 @@
             </details>
 
             <details>
-                <summary>📝 2. Menggunakan Smart Word Studio</summary>
+                <summary>📝 3. Menggunakan Smart Word Studio</summary>
                 <p>• Ketik naskah di lembar kerja seperti Microsoft Word.<br>
                 • Gunakan chip ungu (✍️ Lanjutkan Tulisan, 🔍 Ejaan, 🎭 Formal, 📑 Ringkas) untuk meminta AI mengolah tulisan Anda.<br>
                 • Simpan naskah langsung ke folder Download HP sebagai file .TXT atau .DOC (Word)!</p>
             </details>
 
             <details>
-                <summary>⚡ 3. Dua Pilihan Model Google Gemma</summary>
+                <summary>🧠 4. Dua Pilihan Model Google Gemma</summary>
                 <p>• <b>Gemma Turbo (0.98 GB):</b> Ultra-cepat untuk chat harian dan respon instan.<br>
                 • <b>Gemma Studio (1.63 GB):</b> Presisi tinggi untuk penulisan sastra dan dokumen resmi.</p>
             </details>
 
             <div style="margin-top:14px; text-align:center;">
                 <button class="tool-btn primary" style="width:100%; justify-content:center;" onclick="closeHelpModal()">Tutup Panduan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROOT POWER CONFIRMATION MODAL -->
+    <div class="modal-overlay" id="modal-root-confirm">
+        <div class="modal-card" style="border-color:var(--accent-red); box-shadow:0 10px 30px rgba(255,82,82,0.3);">
+            <div class="modal-header">
+                <h2 style="color:var(--accent-red);" id="root-confirm-title">⚠️ Konfirmasi Reset HP</h2>
+                <button class="btn-close-modal" onclick="closeRootConfirmModal()">×</button>
+            </div>
+            <div style="font-size:0.85rem; line-height:1.5; color:var(--text-main); margin-bottom:14px;" id="root-confirm-msg">
+                Apakah Bang Haji yakin ingin me-restart / me-reset sistem HP Android sekarang? Pastikan pekerjaan Anda di Word Studio sudah disimpan.
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-secondary" style="flex:1;" onclick="closeRootConfirmModal()">✕ Batal</button>
+                <button class="btn-primary" style="flex:1; background:var(--accent-red); color:#fff;" id="btn-execute-root" onclick="doExecuteRootAction()">⚡ Ya, Reset Sekarang</button>
             </div>
         </div>
     </div>
@@ -1727,6 +1752,40 @@
             sendChat();
         }
 
+        // ================= ROOT POWER SYSTEM HANDLERS =================
+        let pendingRootAction = "reboot";
+
+        function promptRootAction(action = 'reboot') {
+            pendingRootAction = action;
+            const titleEl = document.getElementById('root-confirm-title');
+            const msgEl = document.getElementById('root-confirm-msg');
+            
+            if (action === 'soft_reboot') {
+                titleEl.innerText = "⚡ Konfirmasi Soft Reboot UI";
+                msgEl.innerText = "Apakah Bang Haji ingin me-restart antarmuka UI Android? Sistem akan me-refresh Zygote tanpa mematikan kernel.";
+            } else if (action === 'recovery') {
+                titleEl.innerText = "🛠️ Konfirmasi Masuk Recovery";
+                msgEl.innerText = "Apakah Bang Haji ingin me-restart HP langsung masuk ke menu TWRP / Lineage Recovery?";
+            } else {
+                titleEl.innerText = "⚠️ Konfirmasi Reset / Reboot HP";
+                msgEl.innerText = "Apakah Bang Haji yakin ingin me-restart / me-reset sistem HP Android sekarang? Pastikan draf Word Studio sudah tersimpan.";
+            }
+            document.getElementById('modal-root-confirm').style.display = 'flex';
+        }
+
+        function closeRootConfirmModal() {
+            document.getElementById('modal-root-confirm').style.display = 'none';
+        }
+
+        function doExecuteRootAction() {
+            closeRootConfirmModal();
+            if (window.NativeBridge && window.NativeBridge.executeRootPowerAction) {
+                window.NativeBridge.executeRootPowerAction(pendingRootAction);
+            } else {
+                showAppToast("⚠️ Root Native Bridge belum tersedia di browser emulator.");
+            }
+        }
+
         function sendChat() {
             const input = document.getElementById('input-prompt');
             const msg = input.value.trim();
@@ -1734,6 +1793,22 @@
 
             if (!msg && !imgToUpload) return;
             if (isProcessing) return;
+
+            // Intent Check: Reset / Reboot HP
+            const lowerMsg = msg.toLowerCase();
+            if (lowerMsg === "reset hp" || lowerMsg === "restart hp" || lowerMsg === "reboot hp" || lowerMsg === "reboot" || lowerMsg === "restart") {
+                input.value = "";
+                promptRootAction('reboot');
+                return;
+            } else if (lowerMsg === "soft reboot" || lowerMsg === "restart ui") {
+                input.value = "";
+                promptRootAction('soft_reboot');
+                return;
+            } else if (lowerMsg === "recovery" || lowerMsg === "reboot recovery") {
+                input.value = "";
+                promptRootAction('recovery');
+                return;
+            }
 
             input.value = "";
             clearAttachedImage();
