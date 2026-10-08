@@ -502,9 +502,9 @@
     <div id="chatList">
         <div class="chat-row assistant">
             <div class="chat-bubble">
-Halo Bang Haji! Selamat datang di **Pocket AI Edge** (v2.2.0 True Native Silicon Transformer) 🚀
+Halo Bang Haji! Selamat datang di **Pocket AI Edge** (v2.3.0 Google Gemma 2 Sovereign Edition) 🚀
 
-Aplikasi ini 100% Murni On-Device, menjalankan miliaran bobot tensor Google Gemma 2 & Qwen secara langsung via C++ JNI Decoder tanpa internet sama sekali.
+Aplikasi ini 100% Murni On-Device, difokuskan dan dioptimalkan secara eksklusif untuk **Google Gemma 2 (2.6B Instruct)** via C++ JNI Transformer Decoder tanpa internet sama sekali.
 
 Untuk mulai, silakan periksa status model di **Model Hub (⚙️)**. Anda bisa mengunduh **Google Gemma 2 (2.6B)** dengan 1-klik atau memilih file `.gguf` dari penyimpanan HP.
             </div>
@@ -555,51 +555,23 @@ Untuk mulai, silakan periksa status model di **Model Hub (⚙️)**. Anda bisa m
             <!-- MODEL CARDS WITH SPECS -->
             <div id="modelListContainer" style="display: flex; flex-direction: column; gap: 8px;">
                 
-                <!-- MODEL 1: GEMMA 2 -->
+                <!-- SINGLE FLAGSHIP MODEL: GOOGLE GEMMA 2 -->
                 <div class="model-card active" onclick="selectModel('gemma-2-2.6b')">
                     <div class="model-card-header">
                         <div class="model-name">Google Gemma 2 (2.6B Instruct)</div>
                         <span id="badge-gemma" class="badge-status badge-missing">BELUM TERPASANG</span>
                     </div>
                     <div class="model-specs">
-                        <span class="spec-tag">Param: 2.6B</span>
+                        <span class="spec-tag">Param: 2.61B</span>
                         <span class="spec-tag">Kuantisasi: Q4_K_M</span>
                         <span class="spec-tag">Ukuran: 1.63 GB</span>
-                        <span class="spec-tag">Context: 4096</span>
-                        <span class="spec-tag" style="color: var(--accent-cyan);">GPU: 4.02 tok/s</span>
+                        <span class="spec-tag">Context: 8192</span>
+                        <span class="spec-tag" style="color: var(--accent-cyan);">GPU: Mali-G76 Vulkan</span>
                     </div>
-                    <div style="margin-top: 4px; display: flex; gap: 6px;">
-                        <button class="pill-btn" style="background: rgba(171, 71, 188, 0.2); border-color: var(--accent-purple); color: #ce93d8;" onclick="downloadGemmaModel(); event.stopPropagation();">
-                            📥 Unduh Model (1.63 GB)
+                    <div style="margin-top: 6px; display: flex; gap: 6px;">
+                        <button class="pill-btn" style="background: rgba(171, 71, 188, 0.25); border-color: var(--accent-purple); color: #ce93d8;" onclick="downloadGemmaModel(); event.stopPropagation();">
+                            📥 Unduh Google Gemma 2 (1.63 GB)
                         </button>
-                    </div>
-                </div>
-
-                <!-- MODEL 2: QWEN 2.5 -->
-                <div class="model-card" onclick="selectModel('qwen-2.5-3b')">
-                    <div class="model-card-header">
-                        <div class="model-name">Qwen 2.5 3B (Abliterated Uncensored)</div>
-                        <span id="badge-qwen" class="badge-status badge-missing">BELUM TERPASANG</span>
-                    </div>
-                    <div class="model-specs">
-                        <span class="spec-tag">Param: 3.0B</span>
-                        <span class="spec-tag">Kuantisasi: Q4_K_M</span>
-                        <span class="spec-tag">Ukuran: 1.92 GB</span>
-                        <span class="spec-tag" style="color: var(--accent-cyan);">Speed: 4.02 tok/s</span>
-                    </div>
-                </div>
-
-                <!-- MODEL 3: ARLIAI RPMAX -->
-                <div class="model-card" onclick="selectModel('arliai-rpmax-3.8b')">
-                    <div class="model-card-header">
-                        <div class="model-name">ArliAI RPMax 3.8B (Story &amp; Sastra)</div>
-                        <span id="badge-arliai" class="badge-status badge-missing">BELUM TERPASANG</span>
-                    </div>
-                    <div class="model-specs">
-                        <span class="spec-tag">Param: 3.8B</span>
-                        <span class="spec-tag">Kuantisasi: Q4_K_M</span>
-                        <span class="spec-tag">Ukuran: 2.38 GB</span>
-                        <span class="spec-tag">Coherence: 96.4%</span>
                     </div>
                 </div>
 

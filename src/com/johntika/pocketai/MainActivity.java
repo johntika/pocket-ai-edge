@@ -91,6 +91,7 @@ public class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient());
 
         autoDetectModel();
+        unpackBundledGemmaIfNeeded();
 
         // 🌉 Register Pure Offline In-Process JavascriptBridge
         webView.addJavascriptInterface(new Object() {
@@ -207,47 +208,26 @@ public class MainActivity extends Activity {
         String pGemma = findModelPath("gemma-2-2.6b-it-Q4_K_M.gguf");
         if (pGemma.isEmpty()) pGemma = findModelPath("gemma-2-2b-it.Q4_K_M.gguf");
 
-        String p15 = findModelPath("qwen2.5-1.5b-instruct-q4_k_m.gguf");
-        String p3b = findModelPath("qwen2.5-3b-instruct-q4_k_m.gguf");
-        if (p3b.isEmpty()) p3b = findModelPath("Qwen2.5-3B-Instruct-abliterated.Q4_K_M.gguf");
-
-        boolean okGemma = !pGemma.isEmpty();
-        boolean ok15 = !p15.isEmpty();
-        boolean ok3b = !p3b.isEmpty();
-        boolean hasAny = okGemma || ok15 || ok3b || (!selectedModelPath.isEmpty() && new File(selectedModelPath).exists());
-
+        boolean okGemma = !pGemma.isEmpty() || (!selectedModelPath.isEmpty() && new File(selectedModelPath).exists());
         String activeName = "Belum Terpasang";
         String activeSize = "0 GB";
 
-        if (!selectedModelPath.isEmpty() && new File(selectedModelPath).exists()) {
-            File f = new File(selectedModelPath);
-            activeName = f.getName().replace(".gguf", "");
+        if (okGemma) {
+            String targetPath = !selectedModelPath.isEmpty() && new File(selectedModelPath).exists() ? selectedModelPath : pGemma;
+            File f = new File(targetPath);
+            activeName = "Google Gemma 2 (2.6B Instruct)";
             activeSize = String.format(Locale.US, "%.2f GB", f.length() / 1073741824.0);
-        } else if (okGemma) {
-            activeName = "Google Gemma 2 (2.6B)";
-            activeSize = String.format(Locale.US, "%.2f GB", new File(pGemma).length() / 1073741824.0);
-            saveModelPath(pGemma);
-        } else if (ok3b) {
-            activeName = "Qwen 2.5 (3B Pro)";
-            activeSize = String.format(Locale.US, "%.2f GB", new File(p3b).length() / 1073741824.0);
-            saveModelPath(p3b);
-        } else if (ok15) {
-            activeName = "Qwen 2.5 (1.5B Turbo)";
-            activeSize = String.format(Locale.US, "%.2f GB", new File(p15).length() / 1073741824.0);
-            saveModelPath(p15);
+            saveModelPath(targetPath);
         }
 
-        String gemmaSize = okGemma ? String.format(Locale.US, "%.2f GB", new File(pGemma).length() / 1073741824.0) : "0 GB";
-        String qwenSize = (ok15 || ok3b) ? (ok3b ? String.format(Locale.US, "%.2f GB", new File(p3b).length() / 1073741824.0) : String.format(Locale.US, "%.2f GB", new File(p15).length() / 1073741824.0)) : "0 GB";
+        String gemmaSize = okGemma ? activeSize : "0 GB";
 
         return "{" +
-            "\"has_model\":" + hasAny + "," +
+            "\"has_model\":" + okGemma + "," +
             "\"active_model_name\":\"" + activeName + "\"," +
             "\"active_model_size\":\"" + activeSize + "\"," +
             "\"gemma_installed\":" + okGemma + "," +
-            "\"gemma_size\":\"" + gemmaSize + "\"," +
-            "\"qwen_installed\":" + (ok15 || ok3b) + "," +
-            "\"qwen_size\":\"" + qwenSize + "\"" +
+            "\"gemma_size\":\"" + gemmaSize + "\"" +
         "}";
     }
 
@@ -258,9 +238,6 @@ public class MainActivity extends Activity {
 
         String p = findModelPath("gemma-2-2.6b-it-Q4_K_M.gguf");
         if (p.isEmpty()) p = findModelPath("gemma-2-2b-it.Q4_K_M.gguf");
-        if (p.isEmpty()) p = findModelPath("qwen2.5-1.5b-instruct-q4_k_m.gguf");
-        if (p.isEmpty()) p = findModelPath("qwen2.5-3b-instruct-q4_k_m.gguf");
-        if (p.isEmpty()) p = findModelPath("Qwen2.5-3B-Instruct-abliterated.Q4_K_M.gguf");
 
         if (p.isEmpty()) {
             File[] dirs = {
@@ -268,14 +245,15 @@ public class MainActivity extends Activity {
                 Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
                 getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
                 new File("/storage/emulated/0/Download"),
-                new File("/sdcard/Download")
+                new File("/sdcard/Download"),
+                new File("/root/pocket-llm-uncensored/models")
             };
             for (File d : dirs) {
                 if (d != null && d.exists()) {
                     File[] files = d.listFiles();
                     if (files != null) {
                         for (File f : files) {
-                            if (f.getName().toLowerCase().endsWith(".gguf") && f.length() > 50000000) {
+                            if (f.getName().toLowerCase().contains("gemma") && f.getName().toLowerCase().endsWith(".gguf") && f.length() > 50000000) {
                                 p = f.getAbsolutePath();
                                 break;
                             }
@@ -289,6 +267,85 @@ public class MainActivity extends Activity {
         if (!p.isEmpty()) {
             saveModelPath(p);
         }
+    }
+
+    private void unpackBundledGemmaIfNeeded() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    File modelsDir = new File(getFilesDir(), "models");
+                    if (!modelsDir.exists()) modelsDir.mkdirs();
+                    File targetFile = new File(modelsDir, "gemma-2-2.6b-it-Q4_K_M.gguf");
+
+                    if (targetFile.exists() && targetFile.length() > 500000000) {
+                        saveModelPath(targetFile.getAbsolutePath());
+                        notifyModelReady();
+                        return;
+                    }
+
+                    File extFile = new File("/sdcard/Download/gemma-2-2.6b-it-Q4_K_M.gguf");
+                    if (!extFile.exists()) extFile = new File("/storage/emulated/0/Download/gemma-2-2.6b-it-Q4_K_M.gguf");
+
+                    if (extFile.exists() && extFile.length() > 500000000) {
+                        saveModelPath(extFile.getAbsolutePath());
+                        notifyModelReady();
+                        return;
+                    }
+
+                    InputStream is = null;
+                    try {
+                        is = getAssets().open("models/gemma-2-2.6b-it-Q4_K_M.gguf");
+                    } catch (Exception ignored) {}
+
+                    if (is != null) {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                showToast("📦 Menyiapkan model Google Gemma 2 bawaan APK...");
+                            }
+                        });
+
+                        FileOutputStream fos = new FileOutputStream(targetFile);
+                        byte[] buffer = new byte[65536];
+                        int read;
+                        long totalRead = 0;
+                        long totalSize = 1714136192L;
+
+                        while ((read = is.read(buffer)) != -1) {
+                            fos.write(buffer, 0, read);
+                            totalRead += read;
+                            final int progress = (int)((totalRead * 100) / totalSize);
+                            final long dlMb = totalRead / 1048576;
+                            if (totalRead % (50 * 1048576) < 65536) {
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        webView.evaluateJavascript("window.onDownloadProgress(" + progress + ", " + dlMb + ", 1630, 'Direct Extractor');", null);
+                                    }
+                                });
+                            }
+                        }
+                        fos.flush();
+                        fos.close();
+                        is.close();
+
+                        saveModelPath(targetFile.getAbsolutePath());
+                        notifyModelReady();
+                    }
+                } catch (Exception ignored) {}
+            }
+        }).start();
+    }
+
+    private void notifyModelReady() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                webView.evaluateJavascript("window.onDownloadProgress(100, 1630, 1630, '0'); refreshModelStatus();", null);
+                showToast("✅ Google Gemma 2 Siap Digunakan Langsung 100% Offline!");
+            }
+        });
     }
 
     private void openFilePicker() {
