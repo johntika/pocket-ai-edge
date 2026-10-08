@@ -4,9 +4,11 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -36,6 +38,7 @@ public class MainActivity extends Activity {
     private static final int CAMERA_REQUEST = 201;
     private static final int GALLERY_REQUEST = 202;
     private static final int FILE_CHOOSER_REQUEST = 203;
+    private static final int PERMISSION_REQUEST = 301;
 
     private static final String PREF_NAME = "pocket_ai_prefs";
     private static final String KEY_MODEL_PATH = "selected_model_path";
@@ -71,6 +74,7 @@ public class MainActivity extends Activity {
     private boolean isDownloading = false;
     private SharedPreferences prefs;
     private ValueCallback<Uri[]> uploadMessage;
+    private Uri cameraTempUri = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,6 +85,15 @@ public class MainActivity extends Activity {
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        // StrictMode file URI exposure allowance
+        try {
+            StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+            StrictMode.setVmPolicy(builder.build());
+        } catch (Throwable ignored) {}
+
+        // Request runtime permissions on start
+        checkAndRequestAppPermissions();
 
         webView = new WebView(this);
         webView.setBackgroundColor(Color.parseColor("#0c0d12"));
@@ -149,28 +162,32 @@ public class MainActivity extends Activity {
 
             @JavascriptInterface
             public void pickModelFile() {
-                openFilePicker();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        openFilePicker();
+                    }
+                });
             }
 
             @JavascriptInterface
             public void openNativeCamera() {
-                try {
-                    Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                    startActivityForResult(cameraIntent, CAMERA_REQUEST);
-                } catch (Exception e) {
-                    showToast("Gagal membuka kamera: " + e.getMessage());
-                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        launchCameraIntent();
+                    }
+                });
             }
 
             @JavascriptInterface
             public void openNativeGallery() {
-                try {
-                    Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
-                    galleryIntent.setType("image/*");
-                    startActivityForResult(Intent.createChooser(galleryIntent, "Pilih Gambar"), GALLERY_REQUEST);
-                } catch (Exception e) {
-                    showToast("Gagal membuka galeri: " + e.getMessage());
-                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        launchGalleryIntent();
+                    }
+                });
             }
 
             @JavascriptInterface
@@ -219,34 +236,44 @@ public class MainActivity extends Activity {
             }
 
             @JavascriptInterface
-            public void shareDocument(String title, String content) {
-                try {
-                    Intent sendIntent = new Intent();
-                    sendIntent.setAction(Intent.ACTION_SEND);
-                    sendIntent.putExtra(Intent.EXTRA_SUBJECT, title);
-                    sendIntent.putExtra(Intent.EXTRA_TEXT, content);
-                    sendIntent.setType("text/plain");
-                    Intent shareIntent = Intent.createChooser(sendIntent, "Bagikan Dokumen");
-                    startActivity(shareIntent);
-                } catch (Throwable t) {
-                    showToast("Gagal membagikan dokumen: " + t.getMessage());
-                }
+            public void shareDocument(final String title, final String content) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Intent sendIntent = new Intent();
+                            sendIntent.setAction(Intent.ACTION_SEND);
+                            sendIntent.putExtra(Intent.EXTRA_SUBJECT, title);
+                            sendIntent.putExtra(Intent.EXTRA_TEXT, content);
+                            sendIntent.setType("text/plain");
+                            Intent shareIntent = Intent.createChooser(sendIntent, "Bagikan Dokumen");
+                            startActivity(shareIntent);
+                        } catch (Throwable t) {
+                            showToast("Gagal membagikan dokumen: " + t.getMessage());
+                        }
+                    }
+                });
             }
 
             @JavascriptInterface
-            public void saveDocumentToDownload(String filename, String content) {
-                try {
-                    File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                    if (!downloadDir.exists()) downloadDir.mkdirs();
-                    File outFile = new File(downloadDir, filename);
-                    FileOutputStream fos = new FileOutputStream(outFile);
-                    fos.write(content.getBytes("UTF-8"));
-                    fos.flush();
-                    fos.close();
-                    showToast("✅ Dokumen tersimpan di Download: " + filename);
-                } catch (Throwable t) {
-                    showToast("Gagal menyimpan file: " + t.getMessage());
-                }
+            public void saveDocumentToDownload(final String filename, final String content) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                            if (!downloadDir.exists()) downloadDir.mkdirs();
+                            File outFile = new File(downloadDir, filename);
+                            FileOutputStream fos = new FileOutputStream(outFile);
+                            fos.write(content.getBytes("UTF-8"));
+                            fos.flush();
+                            fos.close();
+                            showToast("✅ Dokumen tersimpan di Download: " + filename);
+                        } catch (Throwable t) {
+                            showToast("Gagal menyimpan file: " + t.getMessage());
+                        }
+                    }
+                }).start();
             }
 
             @JavascriptInterface
@@ -266,6 +293,82 @@ public class MainActivity extends Activity {
 
         setContentView(webView);
         webView.loadUrl("file:///android_asset/web/index.html");
+    }
+
+    private void checkAndRequestAppPermissions() {
+        if (android.os.Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{
+                    android.Manifest.permission.CAMERA,
+                    android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                }, PERMISSION_REQUEST);
+            }
+        }
+    }
+
+    private void launchCameraIntent() {
+        try {
+            if (android.os.Build.VERSION.SDK_INT >= 23) {
+                if (checkSelfPermission(android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                    requestPermissions(new String[]{
+                        android.Manifest.permission.CAMERA,
+                        android.Manifest.permission.READ_EXTERNAL_STORAGE,
+                        android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+                    }, PERMISSION_REQUEST);
+                    showToast("Meminta izin kamera...");
+                    return;
+                }
+            }
+
+            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            try {
+                startActivityForResult(cameraIntent, CAMERA_REQUEST);
+            } catch (Exception e1) {
+                Intent chooser = Intent.createChooser(cameraIntent, "Ambil Foto");
+                startActivityForResult(chooser, CAMERA_REQUEST);
+            }
+        } catch (Exception e) {
+            showToast("Gagal membuka kamera: " + e.getMessage());
+        }
+    }
+
+    private void launchGalleryIntent() {
+        try {
+            Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            galleryIntent.setType("image/*");
+            try {
+                startActivityForResult(galleryIntent, GALLERY_REQUEST);
+            } catch (Exception e1) {
+                Intent getContIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                getContIntent.setType("image/*");
+                getContIntent.addCategory(Intent.CATEGORY_OPENABLE);
+                startActivityForResult(Intent.createChooser(getContIntent, "Pilih Gambar"), GALLERY_REQUEST);
+            }
+        } catch (Exception e) {
+            showToast("Gagal membuka galeri: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST) {
+            boolean camOk = false;
+            for (int i = 0; i < permissions.length; i++) {
+                if (permissions[i].equals(android.Manifest.permission.CAMERA)) {
+                    camOk = (grantResults.length > i && grantResults[i] == PackageManager.PERMISSION_GRANTED);
+                }
+            }
+            if (camOk) {
+                showToast("✅ Izin kamera diberikan! Membuka kamera...");
+                launchCameraIntent();
+            } else {
+                showToast("⚠️ Izin kamera belum diberikan.");
+            }
+        }
     }
 
     private void processAndSendBitmapToWeb(final Bitmap bmp) {
@@ -502,20 +605,28 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == CAMERA_REQUEST && resultCode == RESULT_OK && data != null) {
+        if (requestCode == CAMERA_REQUEST && resultCode == RESULT_OK) {
             Bitmap photo = null;
-            if (data.getExtras() != null && data.getExtras().get("data") != null) {
-                photo = (Bitmap) data.getExtras().get("data");
+            if (data != null) {
+                if (data.getExtras() != null && data.getExtras().get("data") != null) {
+                    Object obj = data.getExtras().get("data");
+                    if (obj instanceof Bitmap) {
+                        photo = (Bitmap) obj;
+                    }
+                }
+                if (photo == null && data.getData() != null) {
+                    try {
+                        InputStream is = getContentResolver().openInputStream(data.getData());
+                        photo = BitmapFactory.decodeStream(is);
+                        if (is != null) is.close();
+                    } catch (Exception ignored) {}
+                }
             }
             if (photo != null) {
+                showToast("📷 Foto berhasil diambil!");
                 processAndSendBitmapToWeb(photo);
-            } else if (data.getData() != null) {
-                try {
-                    InputStream is = getContentResolver().openInputStream(data.getData());
-                    Bitmap b = BitmapFactory.decodeStream(is);
-                    if (is != null) is.close();
-                    if (b != null) processAndSendBitmapToWeb(b);
-                } catch (Exception ignored) {}
+            } else {
+                showToast("⚠️ Foto kamera tidak dapat dibaca");
             }
         } else if (requestCode == GALLERY_REQUEST && resultCode == RESULT_OK && data != null) {
             Uri selectedImage = data.getData();
@@ -525,6 +636,7 @@ public class MainActivity extends Activity {
                     Bitmap bitmap = BitmapFactory.decodeStream(imageStream);
                     if (imageStream != null) imageStream.close();
                     if (bitmap != null) {
+                        showToast("🖼️ Gambar galeri berhasil dipilih!");
                         processAndSendBitmapToWeb(bitmap);
                     }
                 } catch (Exception e) {
