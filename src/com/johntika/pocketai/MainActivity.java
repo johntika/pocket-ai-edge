@@ -17,6 +17,7 @@ import android.graphics.Color;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -284,30 +285,34 @@ public class MainActivity extends Activity {
                         return;
                     }
 
+                    // 1. Check if model exists in external storage, copy to internal sandbox
                     File extFile = new File("/sdcard/Download/gemma-2-2.6b-it-Q4_K_M.gguf");
                     if (!extFile.exists()) extFile = new File("/storage/emulated/0/Download/gemma-2-2.6b-it-Q4_K_M.gguf");
 
+                    InputStream is = null;
                     if (extFile.exists() && extFile.length() > 500000000) {
-                        saveModelPath(extFile.getAbsolutePath());
-                        notifyModelReady();
-                        return;
+                        try {
+                            is = new FileInputStream(extFile);
+                        } catch (Exception ignored) {}
                     }
 
-                    InputStream is = null;
-                    try {
-                        is = getAssets().open("models/gemma-2-2.6b-it-Q4_K_M.gguf");
-                    } catch (Exception ignored) {}
+                    // 2. If not in external storage, check bundled APK asset
+                    if (is == null) {
+                        try {
+                            is = getAssets().open("models/gemma-2-2.6b-it-Q4_K_M.gguf");
+                        } catch (Exception ignored) {}
+                    }
 
                     if (is != null) {
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                showToast("📦 Menyiapkan model Google Gemma 2 bawaan APK...");
+                                showToast("📦 Mempersiapkan Google Gemma 2 di Unified Memory Sandbox...");
                             }
                         });
 
                         FileOutputStream fos = new FileOutputStream(targetFile);
-                        byte[] buffer = new byte[65536];
+                        byte[] buffer = new byte[131072];
                         int read;
                         long totalRead = 0;
                         long totalSize = 1714136192L;
@@ -317,11 +322,11 @@ public class MainActivity extends Activity {
                             totalRead += read;
                             final int progress = (int)((totalRead * 100) / totalSize);
                             final long dlMb = totalRead / 1048576;
-                            if (totalRead % (50 * 1048576) < 65536) {
+                            if (totalRead % (50 * 1048576) < 131072) {
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        webView.evaluateJavascript("window.onDownloadProgress(" + progress + ", " + dlMb + ", 1630, 'Direct Extractor');", null);
+                                        webView.evaluateJavascript("window.onDownloadProgress(" + progress + ", " + dlMb + ", 1630, 'Internal Memory Copier');", null);
                                     }
                                 });
                             }
