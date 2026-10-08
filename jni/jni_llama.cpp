@@ -47,6 +47,11 @@ Java_com_johntika_pocketai_MainActivity_nativeInfer(
         model_params.n_gpu_layers = jNgl; // Offload to GPU if jNgl > 0
         
         g_model = llama_model_load_from_file(modelStr.c_str(), model_params);
+        if (g_model == nullptr && jNgl > 0) {
+            // Automatic fallback to CPU if GPU driver fails
+            model_params.n_gpu_layers = 0;
+            g_model = llama_model_load_from_file(modelStr.c_str(), model_params);
+        }
         if (g_model != nullptr) {
             g_loaded_model_path = modelStr;
         }

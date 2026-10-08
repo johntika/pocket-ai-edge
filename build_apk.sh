@@ -4,7 +4,7 @@ cd /root/pocket-ai-edge
 rm -rf bin gen
 mkdir -p bin gen assets/web
 
-echo "=== 🚀 BUILDING POCKET AI EDGE v2.2.0 (TRUE NATIVE SILICON TRANSFORMER) ==="
+echo "=== 🚀 BUILDING POCKET AI EDGE v2.3.0 (GOOGLE GEMMA 2 DEDICATED SOVEREIGN EDITION) ==="
 
 echo "Step 1: Generating R.java..."
 aapt package -f -m -J gen -M AndroidManifest.xml -S res -A assets -I /usr/lib/android-sdk/platforms/android-23/android.jar
@@ -32,13 +32,13 @@ aapt add bin/pocket_ai_edge_unaligned.apk \
   lib/arm64-v8a/libggml-cpu-android_armv8.0_1.so
 
 echo "Step 6: Signing with Noorma M Hidayat Master Keystore..."
-/root/tanda-tangan-digital/sign_apk.sh bin/pocket_ai_edge_unaligned.apk bin/Pocket_AI_Edge_v2.2.0_Signed.apk
+/root/tanda-tangan-digital/sign_apk.sh bin/pocket_ai_edge_unaligned.apk bin/Pocket_AI_Edge_v2.3.0_Signed.apk
 
 echo "Step 7: Copying deliverables..."
-cp -f bin/Pocket_AI_Edge_v2.2.0_Signed.apk /sdcard/Download/Pocket_AI_Edge_v2.2.0.apk
-cp -f bin/Pocket_AI_Edge_v2.2.0_Signed.apk /root/jarvis-angel/public/Pocket_AI_Edge_v2.2.0_Signed.apk
+cp -f bin/Pocket_AI_Edge_v2.3.0_Signed.apk /sdcard/Download/Pocket_AI_Edge_v2.3.0.apk
+cp -f bin/Pocket_AI_Edge_v2.3.0_Signed.apk /root/jarvis-angel/public/Pocket_AI_Edge_v2.3.0_Signed.apk
 
 echo "Step 8: Installing to phone via pm install..."
-/system/bin/pm install -r bin/Pocket_AI_Edge_v2.2.0_Signed.apk || true
+/system/bin/pm install -r bin/Pocket_AI_Edge_v2.3.0_Signed.apk || true
 
-echo "✅ BUILD AND INSTALL v2.2.0 COMPLETE!"
+echo "✅ BUILD AND INSTALL v2.3.0 COMPLETE!"
