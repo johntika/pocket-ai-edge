@@ -916,17 +916,42 @@
 
         // ================= VISION AI IMAGE HANDLERS =================
         function triggerCamera() {
-            document.getElementById('input-camera').click();
+            if (window.NativeBridge && window.NativeBridge.openNativeCamera) {
+                window.NativeBridge.openNativeCamera();
+            } else {
+                document.getElementById('input-camera').click();
+            }
         }
 
         function triggerGallery() {
-            document.getElementById('input-gallery').click();
+            if (window.NativeBridge && window.NativeBridge.openNativeGallery) {
+                window.NativeBridge.openNativeGallery();
+            } else {
+                document.getElementById('input-gallery').click();
+            }
         }
 
         function triggerWordOCR() {
-            document.getElementById('input-camera').click();
             window.wordOcrMode = true;
+            if (window.NativeBridge && window.NativeBridge.openNativeCamera) {
+                window.NativeBridge.openNativeCamera();
+            } else {
+                document.getElementById('input-camera').click();
+            }
         }
+
+        window.onNativeImageLoaded = function(base64Data) {
+            currentAttachedBase64 = base64Data;
+            if (window.wordOcrMode) {
+                window.wordOcrMode = false;
+                executeWordOCR(currentAttachedBase64);
+                return;
+            }
+            switchView('chat');
+            document.getElementById('img-thumb').src = currentAttachedBase64;
+            document.getElementById('img-size-label').innerText = "Foto Kamera Siap";
+            document.getElementById('image-attach-dock').style.display = 'flex';
+        };
 
         function handleImageSelected(event) {
             const file = event.target.files[0];

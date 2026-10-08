@@ -7,15 +7,22 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.MediaStore;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.util.Base64;
 import android.view.Window;
 import android.view.WindowManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.WebChromeClient;
+import android.webkit.ValueCallback;
 import android.webkit.JavascriptInterface;
 import android.graphics.Color;
 import android.widget.Toast;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -26,6 +33,10 @@ import java.util.Locale;
 
 public class MainActivity extends Activity {
     private static final int FILE_PICKER_REQUEST = 101;
+    private static final int CAMERA_REQUEST = 201;
+    private static final int GALLERY_REQUEST = 202;
+    private static final int FILE_CHOOSER_REQUEST = 203;
+
     private static final String PREF_NAME = "pocket_ai_prefs";
     private static final String KEY_MODEL_PATH = "selected_model_path";
 
@@ -59,6 +70,7 @@ public class MainActivity extends Activity {
     private String currentHardwareMode = "gpu";
     private boolean isDownloading = false;
     private SharedPreferences prefs;
+    private ValueCallback<Uri[]> uploadMessage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,7 +100,24 @@ public class MainActivity extends Activity {
             settings.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         }
 
-        webView.setWebChromeClient(new android.webkit.WebChromeClient());
+        webView.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onShowFileChooser(WebView webView, ValueCallback<Uri[]> filePathCallback, FileChooserParams fileChooserParams) {
+                if (uploadMessage != null) {
+                    uploadMessage.onReceiveValue(null);
+                    uploadMessage = null;
+                }
+                uploadMessage = filePathCallback;
+                Intent intent = fileChooserParams.createIntent();
+                try {
+                    startActivityForResult(intent, FILE_CHOOSER_REQUEST);
+                } catch (Exception e) {
+                    uploadMessage = null;
+                    return false;
+                }
+                return true;
+            }
+        });
         webView.setWebViewClient(new WebViewClient());
 
         autoDetectModel();
@@ -121,6 +150,27 @@ public class MainActivity extends Activity {
             @JavascriptInterface
             public void pickModelFile() {
                 openFilePicker();
+            }
+
+            @JavascriptInterface
+            public void openNativeCamera() {
+                try {
+                    Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(cameraIntent, CAMERA_REQUEST);
+                } catch (Exception e) {
+                    showToast("Gagal membuka kamera: " + e.getMessage());
+                }
+            }
+
+            @JavascriptInterface
+            public void openNativeGallery() {
+                try {
+                    Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
+                    galleryIntent.setType("image/*");
+                    startActivityForResult(Intent.createChooser(galleryIntent, "Pilih Gambar"), GALLERY_REQUEST);
+                } catch (Exception e) {
+                    showToast("Gagal membuka galeri: " + e.getMessage());
+                }
             }
 
             @JavascriptInterface
@@ -216,6 +266,44 @@ public class MainActivity extends Activity {
 
         setContentView(webView);
         webView.loadUrl("file:///android_asset/web/index.html");
+    }
+
+    private void processAndSendBitmapToWeb(final Bitmap bmp) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    int maxDim = 1024;
+                    int w = bmp.getWidth();
+                    int h = bmp.getHeight();
+                    Bitmap scaled = bmp;
+                    if (w > maxDim || h > maxDim) {
+                        float ratio = Math.min((float) maxDim / w, (float) maxDim / h);
+                        int targetW = Math.round(w * ratio);
+                        int targetH = Math.round(h * ratio);
+                        scaled = Bitmap.createScaledBitmap(bmp, targetW, targetH, true);
+                    }
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    scaled.compress(Bitmap.CompressFormat.JPEG, 85, baos);
+                    byte[] bytes = baos.toByteArray();
+                    final String base64 = "data:image/jpeg;base64," + Base64.encodeToString(bytes, Base64.NO_WRAP);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            webView.evaluateJavascript("if(window.onNativeImageLoaded){ window.onNativeImageLoaded('" + base64 + "'); }", null);
+                        }
+                    });
+                } catch (Exception e) {
+                    final String err = e.getMessage();
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            showToast("Gagal memproses gambar: " + err);
+                        }
+                    });
+                }
+            }
+        }).start();
     }
 
     private void saveModelPath(String path) {
@@ -414,7 +502,48 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == FILE_PICKER_REQUEST && resultCode == RESULT_OK && data != null) {
+        if (requestCode == CAMERA_REQUEST && resultCode == RESULT_OK && data != null) {
+            Bitmap photo = null;
+            if (data.getExtras() != null && data.getExtras().get("data") != null) {
+                photo = (Bitmap) data.getExtras().get("data");
+            }
+            if (photo != null) {
+                processAndSendBitmapToWeb(photo);
+            } else if (data.getData() != null) {
+                try {
+                    InputStream is = getContentResolver().openInputStream(data.getData());
+                    Bitmap b = BitmapFactory.decodeStream(is);
+                    if (is != null) is.close();
+                    if (b != null) processAndSendBitmapToWeb(b);
+                } catch (Exception ignored) {}
+            }
+        } else if (requestCode == GALLERY_REQUEST && resultCode == RESULT_OK && data != null) {
+            Uri selectedImage = data.getData();
+            if (selectedImage != null) {
+                try {
+                    InputStream imageStream = getContentResolver().openInputStream(selectedImage);
+                    Bitmap bitmap = BitmapFactory.decodeStream(imageStream);
+                    if (imageStream != null) imageStream.close();
+                    if (bitmap != null) {
+                        processAndSendBitmapToWeb(bitmap);
+                    }
+                } catch (Exception e) {
+                    showToast("Gagal membaca gambar: " + e.getMessage());
+                }
+            }
+        } else if (requestCode == FILE_CHOOSER_REQUEST) {
+            if (uploadMessage != null) {
+                Uri[] results = null;
+                if (resultCode == RESULT_OK && data != null) {
+                    String dataString = data.getDataString();
+                    if (dataString != null) {
+                        results = new Uri[]{Uri.parse(dataString)};
+                    }
+                }
+                uploadMessage.onReceiveValue(results);
+                uploadMessage = null;
+            }
+        } else if (requestCode == FILE_PICKER_REQUEST && resultCode == RESULT_OK && data != null) {
             final Uri uri = data.getData();
             if (uri != null) {
                 showToast("Memproses file model yang dipilih...");
