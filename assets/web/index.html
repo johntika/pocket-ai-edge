@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pocket AI Edge v5.1.1 — Sovereign Multimodal Vision & Word Studio</title>
+    <title>Pocket AI Edge v5.2.0 — Sovereign Multimodal Vision & Word Studio</title>
     <style>
         :root {
             --bg-main: #0a0b10;
@@ -807,7 +807,7 @@
         <div class="brand-container">
             <div class="brand-icon">👁️</div>
             <div class="brand-text">
-                <h1>Pocket AI Studio <span style="font-size:0.65rem; background:rgba(0,229,255,0.15); color:var(--accent-cyan); padding:2px 6px; border-radius:4px;">v5.1.1</span></h1>
+                <h1>Pocket AI Studio <span style="font-size:0.65rem; background:rgba(0,229,255,0.15); color:var(--accent-cyan); padding:2px 6px; border-radius:4px;">v5.2.0</span></h1>
                 <div class="status-line">
                     <span class="pulse-dot"></span>
                     <span id="txt-server-status">● LOCALHOST:8088 ONLINE (Vision Ready)</span>
@@ -815,6 +815,9 @@
             </div>
         </div>
         <div class="header-actions">
+            <div class="hw-badge" id="btn-clock-badge" style="background:rgba(255,215,0,0.1); border-color:var(--accent-yellow); color:var(--accent-yellow); font-size:0.68rem; padding:4px 8px;">
+                <span id="txt-live-clock">🕒 00:00:00 WIB</span>
+            </div>
             <div class="hw-badge" id="btn-hw-toggle" onclick="toggleHardwareMode()">
                 <span>⚡ GPU Mali-G76</span>
             </div>
@@ -917,7 +920,7 @@
     <div class="view-pane" id="view-chat">
         <div id="chat-container">
             <div class="chat-msg assistant">
-                Halo Bang Haji! Selamat datang di <b>Pocket AI Edge v5.1.1 (Sovereign Multimodal Vision AI &amp; Word Studio)</b> 🚀<br><br>
+                Halo Bang Haji! Selamat datang di <b>Pocket AI Edge v5.2.0 (Sovereign Multimodal Vision AI &amp; Word Studio)</b> 🚀<br><br>
                 Aplikasi ini sekarang memiliki <b>Sensor Mata Vision AI</b>:<br>
                 • 📷 <b>Kamera Langsung &amp; Galeri:</b> Ambil foto objek, struk, atau dokumen.<br>
                 • 🔍 <b>OCR Ekstrak Teks:</b> Ekstrak teks dari foto langsung ke Word Studio.<br>
@@ -953,6 +956,7 @@
         <div class="prompt-chips">
             <div class="chip vision" onclick="triggerCamera()">📷 Buka Kamera</div>
             <div class="chip vision" onclick="triggerGallery()">🖼️ Pilih Galeri</div>
+            <div class="chip" onclick="quickSend('Jam berapa sekarang dan hari apa ini?')">🕒 Jam Berapa Sekarang?</div>
             <div class="chip" onclick="quickSend('Tuliskan 1 kalimat motivasi semangat kerja')">⚡ Motivasi Kilat</div>
             <div class="chip" onclick="quickSend('Buat cerita paragraf tentang petualangan')">📖 Buat Cerita Paragraf</div>
             <div class="chip" onclick="quickSend('Tuliskan resep roti manis empuk dan mengembang')">🍞 Resep Roti Empuk</div>
@@ -1034,7 +1038,7 @@
     <div class="modal-overlay" id="modal-help">
         <div class="modal-card">
             <div class="modal-header">
-                <h2>📖 Panduan Pocket AI Studio v5.1.1</h2>
+                <h2>📖 Panduan Pocket AI Studio v5.2.0</h2>
                 <button class="btn-close-modal" onclick="closeHelpModal()">×</button>
             </div>
             
@@ -1084,7 +1088,37 @@
             }
             updateWordStats();
             checkLocalhostHeartbeat();
+            startLiveClock();
         });
+
+        // ================= REAL-TIME ANDROID HARDWARE CLOCK =================
+        function startLiveClock() {
+            function updateClock() {
+                let dtStr = "";
+                if (window.NativeBridge && window.NativeBridge.getDeviceCurrentTime) {
+                    try {
+                        dtStr = window.NativeBridge.getDeviceCurrentTime();
+                    } catch (e) {}
+                }
+                
+                const now = new Date();
+                const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+                const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+                const day = days[now.getDay()];
+                const date = String(now.getDate()).padStart(2, '0');
+                const month = months[now.getMonth()];
+                const year = now.getFullYear();
+                const h = String(now.getHours()).padStart(2, '0');
+                const m = String(now.getMinutes()).padStart(2, '0');
+                const s = String(now.getSeconds()).padStart(2, '0');
+                
+                const clockEl = document.getElementById('txt-live-clock');
+                if (clockEl) clockEl.innerText = `🕒 ${h}:${m}:${s} WIB`;
+                window.currentDeviceDateTimeStr = dtStr || `${day}, ${date} ${month} ${year}, Pukul ${h}:${m}:${s} WIB`;
+            }
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
 
         // ================= VISION AI IMAGE HANDLERS =================
         function triggerCamera() {

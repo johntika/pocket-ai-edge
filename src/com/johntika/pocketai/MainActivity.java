@@ -865,6 +865,18 @@ public class MainActivity extends Activity {
         final long startTime = System.currentTimeMillis();
         String responseText = "";
 
+        // Format Android Device Real-Time Clock
+        String deviceTimeStr = "";
+        try {
+            java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("EEEE, dd MMMM yyyy, HH:mm:ss 'WIB'", new java.util.Locale("id", "ID"));
+            deviceTimeStr = sdf.format(new java.util.Date());
+        } catch (Throwable ignored) {}
+
+        String contextualPrompt = prompt;
+        if (!deviceTimeStr.isEmpty() && !prompt.contains("[WAKTU SISTEM")) {
+            contextualPrompt = "[WAKTU SISTEM ANDROID: " + deviceTimeStr + "]\nPertanyaan User: " + prompt;
+        }
+
         // 1. Try High-Speed Localhost Daemon Pipeline first (http://127.0.0.1:8088)
         try {
             URL url = new URL("http://127.0.0.1:8088/api/pocket/chat");
@@ -875,7 +887,7 @@ public class MainActivity extends Activity {
             conn.setReadTimeout(15000);
             conn.setDoOutput(true);
 
-            String jsonPayload = "{\"message\":\"" + prompt.replace("\"", "\\\"").replace("\n", "\\n") + "\",\"temperature\":0.7,\"max_tokens\":512,\"hardware\":\"" + hwMode + "\"}";
+            String jsonPayload = "{\"message\":\"" + contextualPrompt.replace("\"", "\\\"").replace("\n", "\\n") + "\",\"temperature\":0.7,\"max_tokens\":512,\"hardware\":\"" + hwMode + "\"}";
             conn.getOutputStream().write(jsonPayload.getBytes("UTF-8"));
             conn.getOutputStream().flush();
 
@@ -907,7 +919,7 @@ public class MainActivity extends Activity {
             if (!actualModelPath.isEmpty() && jniLoaded) {
                 int ngl = hwMode.equalsIgnoreCase("gpu") ? 99 : 0;
                 try {
-                    responseText = nativeInfer(actualModelPath, prompt, ngl, 512);
+                    responseText = nativeInfer(actualModelPath, contextualPrompt, ngl, 512);
                 } catch (Throwable t) {
                     responseText = "";
                 }
