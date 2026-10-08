@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pocket AI Edge v5.3.0 — Sovereign Multimodal Vision & Word Studio</title>
+    <title>Pocket AI Edge v5.4.0 — Sovereign Multimodal Vision & Word Studio</title>
     <style>
         :root {
             --bg-main: #0a0b10;
@@ -765,6 +765,132 @@
             cursor: pointer;
         }
 
+        /* RESEARCH LAB STYLES */
+        .research-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .research-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 14px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .research-card.highlight {
+            border-color: rgba(0, 229, 255, 0.4);
+            background: linear-gradient(180deg, rgba(0, 229, 255, 0.05) 0%, rgba(18, 20, 30, 0.95) 100%);
+        }
+
+        .research-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 8px;
+        }
+
+        .research-card-title {
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .badge-pill {
+            font-size: 0.65rem;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        .badge-pill.lab {
+            background: rgba(255, 215, 0, 0.15);
+            color: var(--accent-yellow);
+            border: 1px solid var(--accent-yellow);
+        }
+
+        .badge-pill.root {
+            background: rgba(255, 82, 82, 0.15);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+        }
+
+        .badge-pill.stable {
+            background: rgba(0, 230, 118, 0.15);
+            color: #00e676;
+            border: 1px solid #00e676;
+        }
+
+        .big-clock-display {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--accent-yellow);
+            text-align: center;
+            padding: 10px 0;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 10px;
+            letter-spacing: 2px;
+            border: 1px dashed rgba(255, 215, 0, 0.3);
+        }
+
+        .power-btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .power-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border-subtle);
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-main);
+            gap: 4px;
+        }
+
+        .power-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .power-btn.danger {
+            border-color: rgba(255, 82, 82, 0.4);
+            background: rgba(255, 82, 82, 0.08);
+            color: var(--accent-red);
+        }
+
+        .power-btn.warning {
+            border-color: rgba(255, 215, 0, 0.4);
+            background: rgba(255, 215, 0, 0.08);
+            color: var(--accent-yellow);
+        }
+
+        .power-btn.info {
+            border-color: rgba(0, 229, 255, 0.4);
+            background: rgba(0, 229, 255, 0.08);
+            color: var(--accent-cyan);
+        }
+
         /* LOADING OVERLAY */
         .ai-loading-indicator {
             display: none;
@@ -807,7 +933,7 @@
         <div class="brand-container">
             <div class="brand-icon">👁️</div>
             <div class="brand-text">
-                <h1>Pocket AI Studio <span style="font-size:0.65rem; background:rgba(0,229,255,0.15); color:var(--accent-cyan); padding:2px 6px; border-radius:4px;">v5.3.0</span></h1>
+                <h1>Pocket AI Studio <span style="font-size:0.65rem; background:rgba(0,229,255,0.15); color:var(--accent-cyan); padding:2px 6px; border-radius:4px;">v5.4.0</span></h1>
                 <div class="status-line">
                     <span class="pulse-dot"></span>
                     <span id="txt-server-status">● LOCALHOST:8088 ONLINE (Vision Ready)</span>
@@ -848,6 +974,9 @@
         </button>
         <button class="tab-btn" id="tab-photo" onclick="switchView('photo')">
             <span>🎨 Photo &amp; Doc Editor</span>
+        </button>
+        <button class="tab-btn" id="tab-research" onclick="switchView('research')">
+            <span>🔬 Lab Riset</span>
         </button>
     </div>
 
@@ -920,7 +1049,7 @@
     <div class="view-pane" id="view-chat">
         <div id="chat-container">
             <div class="chat-msg assistant">
-                Halo Bang Haji! Selamat datang di <b>Pocket AI Edge v5.3.0 (Sovereign Multimodal Vision AI &amp; Word Studio)</b> 🚀<br><br>
+                Halo Bang Haji! Selamat datang di <b>Pocket AI Edge v5.4.0 (Sovereign Multimodal Vision AI &amp; Word Studio)</b> 🚀<br><br>
                 Aplikasi ini sekarang memiliki <b>Sensor Mata Vision AI</b>:<br>
                 • 📷 <b>Kamera Langsung &amp; Galeri:</b> Ambil foto objek, struk, atau dokumen.<br>
                 • 🔍 <b>OCR Ekstrak Teks:</b> Ekstrak teks dari foto langsung ke Word Studio.<br>
@@ -1029,6 +1158,97 @@
         </div>
     </div>
 
+    <!-- ================= VIEW 4: RESEARCH LAB & EXPERIMENTAL SANDBOX ================= -->
+    <div class="view-pane" id="view-research">
+        <div class="research-container">
+            
+            <!-- RESEARCH LAB BANNER -->
+            <div class="research-card highlight">
+                <div class="research-card-header">
+                    <div class="research-card-title">
+                        <span>🔬</span> Lab Riset &amp; Eksperimen On-Device AI
+                    </div>
+                    <span class="badge-pill lab">🧪 STAGING LAB</span>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.5;">
+                    Halaman ini adalah <b>wadah inkubasi riset</b> untuk fitur-fitur mutakhir tingkat hardware, daya kernel, dan sensor waktu sebelum dipromosikan ke halaman utama aplikasi Pocket AI Edge.
+                </div>
+            </div>
+
+            <!-- CARD 1: HARDWARE RTC REAL-TIME CLOCK -->
+            <div class="research-card">
+                <div class="research-card-header">
+                    <div class="research-card-title">
+                        <span>🕒</span> Sensor Jam &amp; Waktu Hardware Android
+                    </div>
+                    <span class="badge-pill stable">✅ RTC SYNCED</span>
+                </div>
+                <div class="big-clock-display" id="research-big-clock">
+                    --:--:-- WIB
+                </div>
+                <div style="font-size:0.75rem; color:var(--accent-cyan); text-align:center; font-weight:600;" id="research-date-display">
+                    Memuat kalender sistem...
+                </div>
+                <div style="display:flex; gap:8px; margin-top:4px;">
+                    <button class="btn-primary" style="flex:1;" onclick="testClockInference()">🧪 Uji Tanya Jam ke Gemma AI</button>
+                </div>
+            </div>
+
+            <!-- CARD 2: SUPERUSER ROOT POWER LIFECYCLE -->
+            <div class="research-card">
+                <div class="research-card-header">
+                    <div class="research-card-title">
+                        <span>⚡</span> Superuser Power &amp; Hardware Lifecycle
+                    </div>
+                    <span class="badge-pill root">🛡️ ROOT PRIVILEGED</span>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted);">
+                    Kontrol daya langsung ke kernel Linux Android Samsung Galaxy Note 10+ via privileged SU bridge:
+                </div>
+                <div class="power-btn-grid">
+                    <button class="power-btn danger" onclick="promptRootAction('reboot')">
+                        <span style="font-size:1.3rem;">🔄</span>
+                        <span>Full Reboot HP</span>
+                        <span style="font-size:0.6rem; color:var(--text-muted);">su -c reboot</span>
+                    </button>
+                    <button class="power-btn warning" onclick="promptRootAction('soft_reboot')">
+                        <span style="font-size:1.3rem;">⚡</span>
+                        <span>Soft Reboot UI</span>
+                        <span style="font-size:0.6rem; color:var(--text-muted);">Restart Zygote ~3s</span>
+                    </button>
+                    <button class="power-btn info" onclick="promptRootAction('recovery')">
+                        <span style="font-size:1.3rem;">🛠️</span>
+                        <span>Recovery Mode</span>
+                        <span style="font-size:0.6rem; color:var(--text-muted);">TWRP / Lineage</span>
+                    </button>
+                    <button class="power-btn" onclick="executeScreenLock()">
+                        <span style="font-size:1.3rem;">🔒</span>
+                        <span>Kunci Layar</span>
+                        <span style="font-size:0.6rem; color:var(--text-muted);">keyevent 26</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- CARD 3: RESEARCH PIPELINE & STAGING ROADMAP -->
+            <div class="research-card">
+                <div class="research-card-header">
+                    <div class="research-card-title">
+                        <span>📋</span> Roadmap Inkubasi &amp; Promosi Fitur
+                    </div>
+                    <span class="badge-pill lab">📊 50+ PAPERS</span>
+                </div>
+                <div style="font-size:0.75rem; line-height:1.6; color:var(--text-muted);">
+                    • <b>[✅ MATANG ➔ HALAMAN UTAMA]</b> AI Word Studio (Office Canvas &amp; Gemma Copilot)<br>
+                    • <b>[✅ MATANG ➔ HALAMAN UTAMA]</b> Multimodal Vision AI &amp; Forensik Dokumen KTP<br>
+                    • <b>[✅ MATANG ➔ HALAMAN UTAMA]</b> Photo &amp; Doc Editor (Magic Scan &amp; Privacy Redaction)<br>
+                    • <b>[🔬 STAGING LAB]</b> Hardware Clock Temporal Ingestion (WIB RTC)<br>
+                    • <b>[🔬 STAGING LAB]</b> Root Superuser Hardware Power Lifecycle
+                </div>
+            </div>
+
+        </div>
+    </div>
+
     <!-- LOADING INDICATOR -->
     <div class="ai-loading-indicator" id="ai-loader">
         <div class="spinner"></div>
@@ -1039,7 +1259,7 @@
     <div class="modal-overlay" id="modal-help">
         <div class="modal-card">
             <div class="modal-header">
-                <h2>📖 Panduan Pocket AI Studio v5.3.0</h2>
+                <h2>📖 Panduan Pocket AI Studio v5.4.0</h2>
                 <button class="btn-close-modal" onclick="closeHelpModal()">×</button>
             </div>
             
@@ -1139,10 +1359,30 @@
                 
                 const clockEl = document.getElementById('txt-live-clock');
                 if (clockEl) clockEl.innerText = `🕒 ${h}:${m}:${s} WIB`;
+
+                const researchClockEl = document.getElementById('research-big-clock');
+                if (researchClockEl) researchClockEl.innerText = `${h}:${m}:${s} WIB`;
+
+                const researchDateEl = document.getElementById('research-date-display');
+                if (researchDateEl) researchDateEl.innerText = `${day}, ${date} ${month} ${year}`;
+
                 window.currentDeviceDateTimeStr = dtStr || `${day}, ${date} ${month} ${year}, Pukul ${h}:${m}:${s} WIB`;
             }
             updateClock();
             setInterval(updateClock, 1000);
+        }
+
+        function testClockInference() {
+            switchView('chat');
+            quickSend('Jam berapa sekarang dan hari apa ini? Tolong cek sensor waktu HP.');
+        }
+
+        function executeScreenLock() {
+            if (window.NativeBridge && window.NativeBridge.executeRootPowerAction) {
+                window.NativeBridge.executeRootPowerAction('lock_screen');
+            } else {
+                showAppToast("🔒 Layar dikunci (Simulasi Web).");
+            }
         }
 
         // ================= VISION AI IMAGE HANDLERS =================
@@ -1334,6 +1574,9 @@
             } else if (view === 'photo') {
                 document.getElementById('tab-photo').classList.add('active');
                 document.getElementById('view-photo').classList.add('active');
+            } else if (view === 'research') {
+                document.getElementById('tab-research').classList.add('active');
+                document.getElementById('view-research').classList.add('active');
             } else {
                 document.getElementById('tab-chat').classList.add('active');
                 document.getElementById('view-chat').classList.add('active');
