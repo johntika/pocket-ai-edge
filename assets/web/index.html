@@ -191,6 +191,12 @@
             box-shadow: 0 0 10px rgba(156, 39, 176, 0.4);
         }
 
+        .gemma-btn.active.cloud {
+            background: linear-gradient(135deg, #00e676, #00b0ff);
+            color: #000;
+            box-shadow: 0 0 10px rgba(0, 230, 118, 0.5);
+        }
+
         /* NAVIGATION TABS */
         .tab-bar {
             background: #0f111a;
@@ -1814,6 +1820,7 @@
             } else if (profile === 'cloud') {
                 if (btnCloud) btnCloud.className = 'gemma-btn active cloud';
                 if (tagModel) tagModel.innerText = '☁️ Kaggle Cloud GPU (NVIDIA)';
+                showAppToast("☁️ Beralih ke Mode Cloud GPU Kaggle (>95 tok/s)!");
             }
 
             if (window.NativeBridge && window.NativeBridge.switchModel) {

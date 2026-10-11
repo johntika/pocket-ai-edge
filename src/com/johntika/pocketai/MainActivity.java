@@ -212,6 +212,10 @@ public class MainActivity extends Activity {
 
             @JavascriptInterface
             public void switchModel(String modelKey) {
+                if (modelKey.contains("cloud")) {
+                    showToast("☁️ Mode Cloud GPU Aktif (>95 tok/s via Tunnel)");
+                    return;
+                }
                 String p = "";
                 if (modelKey.contains("gemma") || modelKey.contains("turbo") || modelKey.contains("studio")) {
                     p = findModelPath("gemma-2-2.6b-it-Q4_K_M.gguf");
