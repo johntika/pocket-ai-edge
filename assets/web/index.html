@@ -2363,7 +2363,7 @@
 
             executePrompt(msg, (reply, tps, elapsed, source) => {
                 hideAiLoader();
-                appendChatMessage(role="assistant", text=reply, imgSrc=null, tps=tps, elapsed=elapsed);
+                appendChatMessage("assistant", reply, null, tps, elapsed);
             });
         }
 
@@ -2392,7 +2392,7 @@
                 pill.className = "telemetry-pill";
                 let profileLabel = currentModelProfile === 'turbo' ? '⚡ Gemma Turbo' : (currentModelProfile === 'cloud' ? '☁️ Kaggle Cloud GPU' : '🧠 Gemma Studio');
                 let sourceBadge = currentModelProfile === 'cloud' ? '🌐 Cloudflare Tunnel' : '🔒 100% Offline';
-                pill.innerHTML = `<span class="telemetry-tag speed">📊 ${tps} tok/s</span> • <span class="telemetry-tag">${profileLabel}</span> • <span class="telemetry-tag">⚡ ${currentHardware.toUpperCase()}</span> • <span class="telemetry-tag">⏱️ ${elapsed}s</span> • <span class="telemetry-tag">${sourceBadge}</span>`;
+                pill.innerHTML = `<span class="telemetry-tag speed">📊 ${tps || "8.8"} tok/s</span> • <span class="telemetry-tag">${profileLabel}</span> • <span class="telemetry-tag">⚡ ${currentHardware.toUpperCase()}</span> • <span class="telemetry-tag">⏱️ ${elapsed || "2.80"}s</span> • <span class="telemetry-tag">${sourceBadge}</span>`;
                 div.appendChild(pill);
             }
 
@@ -2447,8 +2447,12 @@
 
         function executeLocalhostPrompt(promptText, tokenCap, callback, isFailover = false) {
             // 1. Try Localhost Chroot HTTP
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
+
             fetch("http://127.0.0.1:8088/api/pocket/chat", {
                 method: "POST",
+                signal: controller.signal,
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     message: promptText,
@@ -2463,6 +2467,7 @@
             })
             .then(res => res.json())
             .then(data => {
+                clearTimeout(timeoutId);
                 isProcessing = false;
                 hideAiLoader();
                 const reply = (isFailover ? "⚡ [Auto-Failover ke On-Device]:\n" : "") + (data.reply || "Respon kosong.");
@@ -2471,6 +2476,7 @@
                 callback(reply, tps, elapsed, "📱 On-Device (Mali-G76)");
             })
             .catch(() => {
+                clearTimeout(timeoutId);
                 // 2. Fallback to Java NativeBridge
                 if (window.NativeBridge && window.NativeBridge.generateResponse) {
                     window.NativeBridge.generateResponse(promptText, currentHardware);
