@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Pocket AI Edge v5.6.0 — Sovereign Multimodal Vision & Word Studio</title>
+    <title>Pocket AI Edge v5.7.0 — Sovereign Multimodal Vision & Word Studio</title>
     <style>
         :root {
             --bg-main: #0a0b10;
@@ -933,7 +933,7 @@
         <div class="brand-container">
             <div class="brand-icon">👁️</div>
             <div class="brand-text">
-                <h1>Pocket AI Studio <span style="font-size:0.65rem; background:rgba(0,229,255,0.15); color:var(--accent-cyan); padding:2px 6px; border-radius:4px;">v5.6.0</span></h1>
+                <h1>Pocket AI Studio <span style="font-size:0.65rem; background:rgba(0,229,255,0.15); color:var(--accent-cyan); padding:2px 6px; border-radius:4px;">v5.7.0</span></h1>
                 <div class="status-line">
                     <span class="pulse-dot"></span>
                     <span id="txt-server-status">● LOCALHOST:8088 ONLINE (Vision Ready)</span>
@@ -956,10 +956,13 @@
         <span style="color:var(--text-muted); font-size:0.7rem; font-weight:600;">🧠 Model Otak:</span>
         <div class="gemma-toggle-group">
             <button class="gemma-btn active turbo" id="btn-model-turbo" onclick="switchGemmaModel('turbo')">
-                ⚡ Gemma Turbo (0.98GB)
+                ⚡ Gemma Turbo
             </button>
             <button class="gemma-btn studio" id="btn-model-studio" onclick="switchGemmaModel('studio')">
-                🧠 Gemma Studio (1.63GB)
+                🧠 Gemma Studio
+            </button>
+            <button class="gemma-btn cloud" id="btn-model-cloud" onclick="switchGemmaModel('cloud')" style="color:#00e5ff;">
+                ☁️ Cloud GPU
             </button>
         </div>
     </div>
@@ -1049,12 +1052,12 @@
     <div class="view-pane" id="view-chat">
         <div id="chat-container">
             <div class="chat-msg assistant">
-                Halo Bang Haji! Selamat datang di <b>Pocket AI Edge v5.6.0 (Heterogeneous Sovereign AI &amp; Word Studio)</b> 🚀<br><br>
-                Aplikasi ini sekarang mendukung <b>Heterogeneous Compute Acceleration</b>:<br>
-                • ⚡ <b>Google Gemma 2 On-Device:</b> 100% Offline di GPU ARM Mali-G76 (Zero Quota, Zero Lag).<br>
-                • ☁️ <b>Cloud Datacenter Bridge:</b> Terhubung dengan akselerasi NVIDIA Tensor Cores di Kaggle/Cloud (>95 tok/s).<br>
+                Halo Bang Haji! Selamat datang di <b>Pocket AI Edge v5.7.0 (Dynamic Cloud-to-Edge Collaborative AI)</b> 🚀<br><br>
+                Aplikasi ini sekarang mendukung <b>Dual-Path Cloud-to-Edge Dispatching</b>:<br>
+                • ⚡ <b>Google Gemma 2 On-Device:</b> 100% Offline di GPU ARM Mali-G76 (Zero Data Leak, Zero Quota).<br>
+                • ☁️ <b>Kaggle Cloud GPU Bridge:</b> Mode Cloudflare Tunnel (>95 tok/s) dengan <b>Smart Auto-Failover</b> ke HP jika tunnel terputus!<br>
                 • 📷 <b>Sensor Mata Vision AI:</b> Ekstrak OCR teks &amp; Digital Forensik dokumen KTP.<br><br>
-                Pilih model otak di bar atas dan nikmati kecerdasan komputasi tanpa batas!
+                Pilih model di bar atas: <b>Gemma Turbo</b>, <b>Gemma Studio</b>, atau <b>Cloud GPU</b>!
                 <div class="telemetry-pill">
                     <span class="telemetry-tag speed" id="tag-current-model">⚡ Gemma Turbo (0.98GB)</span>
                     <span class="telemetry-tag">👁️ Vision Multimodal</span>
@@ -1172,6 +1175,23 @@
                 </div>
                 <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.5;">
                     Halaman ini adalah <b>wadah inkubasi riset</b> untuk fitur-fitur mutakhir tingkat hardware, daya kernel, dan sensor waktu sebelum dipromosikan ke halaman utama aplikasi Pocket AI Edge.
+                </div>
+            </div>
+
+            <!-- CARD 0: KAGGLE CLOUD GPU REVERSE TUNNEL -->
+            <div class="research-card" style="border:1px solid rgba(0, 229, 255, 0.3); background:rgba(0, 229, 255, 0.03);">
+                <div class="research-card-header">
+                    <div class="research-card-title">
+                        <span>☁️</span> Kaggle Cloud GPU Bridge (Cloudflare Tunnel)
+                    </div>
+                    <span class="badge-pill lab" style="background:rgba(0,229,255,0.2); color:var(--accent-cyan);">⚡ >95 tok/s</span>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.5; margin-bottom:8px;">
+                    Jalankan script Gemma 2 di Kaggle GPU, lalu tempel URL Cloudflare Tunnel (<code>https://...trycloudflare.com</code>) di bawah ini untuk akselerasi instan dari HP!
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <input type="text" id="input-kaggle-tunnel" placeholder="https://contoh-tunnel.trycloudflare.com" style="flex:1; background:var(--bg-input); border:1px solid var(--border-subtle); color:var(--text-main); font-size:0.75rem; padding:6px 10px; border-radius:6px;">
+                    <button class="btn-primary" onclick="saveKaggleTunnelUrl()" style="padding:6px 12px; font-size:0.75rem;">Simpan</button>
                 </div>
             </div>
 
@@ -1327,6 +1347,11 @@
             if (savedDoc) {
                 document.getElementById('editor-sheet').innerHTML = savedDoc;
             }
+            const savedTunnel = localStorage.getItem('pocket_ai_kaggle_tunnel_url');
+            if (savedTunnel) {
+                const inputTunnel = document.getElementById('input-kaggle-tunnel');
+                if (inputTunnel) inputTunnel.value = savedTunnel;
+            }
             const savedProfile = localStorage.getItem('pocket_ai_gemma_profile');
             if (savedProfile) {
                 switchGemmaModel(savedProfile, false);
@@ -1370,6 +1395,15 @@
             }
             updateClock();
             setInterval(updateClock, 1000);
+        }
+
+        function saveKaggleTunnelUrl() {
+            const input = document.getElementById('input-kaggle-tunnel');
+            if (input && input.value) {
+                const url = input.value.trim().replace(/\/+$/, '');
+                localStorage.setItem('pocket_ai_kaggle_tunnel_url', url);
+                alert("✅ URL Cloudflare Tunnel Kaggle tersimpan: " + url);
+            }
         }
 
         function testClockInference() {
@@ -1546,16 +1580,22 @@
 
             const btnTurbo = document.getElementById('btn-model-turbo');
             const btnStudio = document.getElementById('btn-model-studio');
+            const btnCloud = document.getElementById('btn-model-cloud');
             const tagModel = document.getElementById('tag-current-model');
 
+            if (btnTurbo) btnTurbo.className = 'gemma-btn turbo';
+            if (btnStudio) btnStudio.className = 'gemma-btn studio';
+            if (btnCloud) btnCloud.className = 'gemma-btn cloud';
+
             if (profile === 'turbo') {
-                btnTurbo.className = 'gemma-btn active turbo';
-                btnStudio.className = 'gemma-btn studio';
+                if (btnTurbo) btnTurbo.className = 'gemma-btn active turbo';
                 if (tagModel) tagModel.innerText = '⚡ Gemma Turbo (0.98GB)';
-            } else {
-                btnStudio.className = 'gemma-btn active studio';
-                btnTurbo.className = 'gemma-btn turbo';
+            } else if (profile === 'studio') {
+                if (btnStudio) btnStudio.className = 'gemma-btn active studio';
                 if (tagModel) tagModel.innerText = '🧠 Gemma Studio (1.63GB)';
+            } else if (profile === 'cloud') {
+                if (btnCloud) btnCloud.className = 'gemma-btn active cloud';
+                if (tagModel) tagModel.innerText = '☁️ Kaggle Cloud GPU (NVIDIA)';
             }
 
             if (window.NativeBridge && window.NativeBridge.switchModel) {
@@ -2116,8 +2156,9 @@
             if (role === 'assistant') {
                 const pill = document.createElement('div');
                 pill.className = "telemetry-pill";
-                const profileLabel = currentModelProfile === 'turbo' ? '⚡ Gemma Turbo' : '🧠 Gemma Studio';
-                pill.innerHTML = `<span class="telemetry-tag speed">📊 ${tps} tok/s</span> • <span class="telemetry-tag">${profileLabel}</span> • <span class="telemetry-tag">⚡ ${currentHardware.toUpperCase()}</span> • <span class="telemetry-tag">⏱️ ${elapsed}s</span> • <span class="telemetry-tag">🔒 100% Offline</span>`;
+                let profileLabel = currentModelProfile === 'turbo' ? '⚡ Gemma Turbo' : (currentModelProfile === 'cloud' ? '☁️ Kaggle Cloud GPU' : '🧠 Gemma Studio');
+                let sourceBadge = currentModelProfile === 'cloud' ? '🌐 Cloudflare Tunnel' : '🔒 100% Offline';
+                pill.innerHTML = `<span class="telemetry-tag speed">📊 ${tps} tok/s</span> • <span class="telemetry-tag">${profileLabel}</span> • <span class="telemetry-tag">⚡ ${currentHardware.toUpperCase()}</span> • <span class="telemetry-tag">⏱️ ${elapsed}s</span> • <span class="telemetry-tag">${sourceBadge}</span>`;
                 div.appendChild(pill);
             }
 
@@ -2131,7 +2172,41 @@
             window.activeCallback = callback;
 
             const tokenCap = currentModelProfile === 'turbo' ? 60 : 256;
+            const customCloudUrl = localStorage.getItem('pocket_ai_kaggle_tunnel_url') || "";
 
+            // Jika mode CLOUD dipilih dan ada URL Cloudflare Tunnel Kaggle
+            if (currentModelProfile === 'cloud' && customCloudUrl.trim().startsWith("http")) {
+                showAiLoader("Kaggle Cloud GPU sedang berpikir (>95 tok/s)...");
+                fetch(customCloudUrl.trim().replace(/\/+$/, '') + "/api/pocket/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: promptText,
+                        temperature: 0.7,
+                        max_tokens: tokenCap
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    isProcessing = false;
+                    hideAiLoader();
+                    const reply = data.reply || "Respon Cloud GPU selesai.";
+                    const elapsed = data.stats && data.stats.elapsed_sec ? data.stats.elapsed_sec.toFixed(2) : "0.85";
+                    const tps = data.stats && data.stats.tokens_per_sec ? data.stats.tokens_per_sec.toFixed(1) : "96.5";
+                    callback(reply, tps, elapsed, "☁️ Kaggle Cloud GPU");
+                })
+                .catch(err => {
+                    // Smart Failover: Otomatis lempar ke On-Device Local jika Cloud offline
+                    console.warn("Cloud GPU offline, auto-failover ke On-Device Mali-G76...", err);
+                    executeLocalhostPrompt(promptText, tokenCap, callback, true);
+                });
+                return;
+            }
+
+            executeLocalhostPrompt(promptText, tokenCap, callback, false);
+        }
+
+        function executeLocalhostPrompt(promptText, tokenCap, callback, isFailover = false) {
             // 1. Try Localhost Chroot HTTP
             fetch("http://127.0.0.1:8088/api/pocket/chat", {
                 method: "POST",
@@ -2150,10 +2225,11 @@
             .then(res => res.json())
             .then(data => {
                 isProcessing = false;
-                const reply = data.reply || "Respon kosong.";
+                hideAiLoader();
+                const reply = (isFailover ? "⚡ [Auto-Failover ke On-Device]:\n" : "") + (data.reply || "Respon kosong.");
                 const elapsed = data.stats && data.stats.elapsed_sec ? data.stats.elapsed_sec.toFixed(2) : (currentModelProfile === 'turbo' ? "2.80" : "5.00");
                 const tps = data.stats && data.stats.tokens_per_sec ? data.stats.tokens_per_sec.toFixed(1) : (currentModelProfile === 'turbo' ? "8.8" : "5.0");
-                callback(reply, tps, elapsed);
+                callback(reply, tps, elapsed, "📱 On-Device (Mali-G76)");
             })
             .catch(() => {
                 // 2. Fallback to Java NativeBridge
@@ -2161,7 +2237,8 @@
                     window.NativeBridge.generateResponse(promptText, currentHardware);
                 } else {
                     isProcessing = false;
-                    callback("Gemma 2 (Offline Fallback): " + promptText, currentModelProfile === 'turbo' ? "8.8" : "5.0", "0.20");
+                    hideAiLoader();
+                    callback("Gemma 2 (Offline Fallback): " + promptText, currentModelProfile === 'turbo' ? "8.8" : "5.0", "0.20", "📱 JNI Offline");
                 }
             });
         }

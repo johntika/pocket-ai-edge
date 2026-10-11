@@ -36,15 +36,15 @@ Aplikasi ini didukung oleh 52 Paper Riset Ilmiah terdaftar di platform Google Ka
 10. `sovereign-edge-ai-os-android-superuser`
 11. `sovereign-offline-ai-gemma4good`
 ...
-51. `pocket-ai-edge-v5-4-0-research-lab-sandbox`
 52. `pocket-ai-edge-v5-5-0-runtime-posix-hardening`
 53. `pocket-ai-edge-v5-6-0-heterogeneous-gpu-benchmark`
+54. `pocket-ai-edge-v5-7-0-cloud-to-edge-inference`
 
 ---
 
 ### 📦 Unduhan APK & Akses:
 * **Package:** `com.johntika.pocketai`
-* **APK File:** `Pocket_AI_Edge_v5.6.0_Signed.apk`
+* **APK File:** `Pocket_AI_Edge_v5.7.0_Signed.apk`
 * **Web Interface:** `http://127.0.0.1:8088/pocket-edge/`
 
 ---
