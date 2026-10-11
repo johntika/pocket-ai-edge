@@ -23,7 +23,7 @@
 ---
 
 ### 🏆 Riset Ilmiah & Paper Kaggle Terkait:
-Aplikasi ini didukung oleh 11 Paper Riset Ilmiah terdaftar di platform Google Kaggle:
+Aplikasi ini didukung oleh 52 Paper Riset Ilmiah terdaftar di platform Google Kaggle:
 1. `accelerating-on-device-llm-on-mobile-arm-mali-gpu`
 2. `pocket-ai-multi-brain-hub-edge-autonomous-agent`
 3. `quantization-pareto-frontier-on-device-gemma`
@@ -35,12 +35,15 @@ Aplikasi ini didukung oleh 11 Paper Riset Ilmiah terdaftar di platform Google Ka
 9. `bridging-bionic-glibc-mobile-gpu-passthrough`
 10. `sovereign-edge-ai-os-android-superuser`
 11. `sovereign-offline-ai-gemma4good`
+...
+51. `pocket-ai-edge-v5-4-0-research-lab-sandbox`
+52. `pocket-ai-edge-v5-5-0-runtime-posix-hardening`
 
 ---
 
 ### 📦 Unduhan APK & Akses:
 * **Package:** `com.johntika.pocketai`
-* **APK File:** `Pocket_AI_Edge_v1.0.0_Signed.apk`
+* **APK File:** `Pocket_AI_Edge_v5.5.0_Signed.apk`
 * **Web Interface:** `http://127.0.0.1:8088/pocket-edge/`
 
 ---

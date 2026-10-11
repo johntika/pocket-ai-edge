@@ -213,7 +213,7 @@ public class MainActivity extends Activity {
             @JavascriptInterface
             public void switchModel(String modelKey) {
                 String p = "";
-                if (modelKey.contains("gemma")) {
+                if (modelKey.contains("gemma") || modelKey.contains("turbo") || modelKey.contains("studio")) {
                     p = findModelPath("gemma-2-2.6b-it-Q4_K_M.gguf");
                     if (p.isEmpty()) p = findModelPath("gemma-2-2b-it.Q4_K_M.gguf");
                 } else if (modelKey.contains("1.5b")) {
@@ -930,7 +930,7 @@ public class MainActivity extends Activity {
             conn.setReadTimeout(15000);
             conn.setDoOutput(true);
 
-            String jsonPayload = "{\"message\":\"" + contextualPrompt.replace("\"", "\\\"").replace("\n", "\\n") + "\",\"temperature\":0.7,\"max_tokens\":512,\"hardware\":\"" + hwMode + "\"}";
+            String jsonPayload = "{\"message\":\"" + contextualPrompt.replace("\"", "\\\"").replace("\n", "\\n") + "\",\"temperature\":0.7,\"max_tokens\":512,\"hardware\":\"" + hwMode + "\",\"brain\":\"local\",\"mode\":\"offline\",\"origin\":\"pocket_edge\"}";
             conn.getOutputStream().write(jsonPayload.getBytes("UTF-8"));
             conn.getOutputStream().flush();
 
