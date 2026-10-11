@@ -45,12 +45,13 @@ Aplikasi ini didukung oleh 52 Paper Riset Ilmiah terdaftar di platform Google Ka
 58. `pocket-ai-edge-v6-1-0-clinical-knowledge-graph`
 59. `pocket-ai-edge-v6-1-0-clinical-redflag-guardrails`
 60. `pocket-ai-edge-v6-1-0-prescription-vision-ocr`
+61. `sovereign-action-learning-arc-agi-3-paper`
 
 ---
 
 ### 📦 Unduhan APK & Akses:
 * **Package:** `com.johntika.pocketai`
-* **APK File:** `Pocket_AI_Edge_v6.1.0_Signed.apk`
+* **APK File:** `Pocket_AI_Edge_v6.2.0_Signed.apk`
 * **Web Interface:** `http://127.0.0.1:8088/pocket-edge/`
 
 ---
