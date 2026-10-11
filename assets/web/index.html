@@ -2353,11 +2353,17 @@
             }
 
             appendChatMessage("user", msg);
-            showAiLoader(currentModelProfile === 'turbo' ? "⚡ Gemma Turbo sedang menjawab cepat..." : "🧠 Gemma Studio sedang memproses...");
+            let loaderText = "🧠 Gemma Studio sedang memproses...";
+            if (currentModelProfile === 'turbo') {
+                loaderText = "⚡ Gemma Turbo sedang menjawab cepat...";
+            } else if (currentModelProfile === 'cloud') {
+                loaderText = "☁️ Kaggle Cloud GPU sedang berpikir (>95 tok/s)...";
+            }
+            showAiLoader(loaderText);
 
-            executePrompt(msg, (reply, tps, elapsed) => {
+            executePrompt(msg, (reply, tps, elapsed, source) => {
                 hideAiLoader();
-                appendChatMessage("assistant", reply, null, tps, elapsed);
+                appendChatMessage(role="assistant", text=reply, imgSrc=null, tps=tps, elapsed=elapsed);
             });
         }
 
@@ -2401,6 +2407,11 @@
 
             const tokenCap = currentModelProfile === 'turbo' ? 60 : 256;
             const customCloudUrl = localStorage.getItem('pocket_ai_kaggle_tunnel_url') || "";
+
+            // Jika mode CLOUD dipilih tapi belum ada URL tunnel, beri tahu user
+            if (currentModelProfile === 'cloud' && !customCloudUrl.trim().startsWith("http")) {
+                showAppToast("⚠️ URL Cloud GPU belum diisi! Menggunakan On-Device GPU...");
+            }
 
             // Jika mode CLOUD dipilih dan ada URL Cloudflare Tunnel Kaggle
             if (currentModelProfile === 'cloud' && customCloudUrl.trim().startsWith("http")) {
